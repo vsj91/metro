@@ -24,7 +24,7 @@
   
   <!-- SEO & Search Engine Optimization -->
   <title>Bangalore Metro & BMTC Bus Route Finder | Bengaluru Transit Planner</title>
-  <meta name="description" content="Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes. Check metro stops, estimated fare, timings, platform direction, bus route suggestions, transfers, and live nearest station." />
+  <meta name="description" content="Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes. Check metro stops, estimated fare, timings, platform direction, bus route suggestions, transfers, and live nearest metro station or bus stop." />
   <meta name="keywords" content="Bangalore Metro route finder, BMTC bus route finder, Bengaluru transit planner, Bengaluru Metro route map, Namma Metro route planner, BMRCL timetable, Bangalore metro fare, Bengaluru bus route, BMTC route, Purple Line, Green Line, Yellow Line" />
   <meta name="robots" content="index, follow" />
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
@@ -66,7 +66,7 @@
         "operatingSystem": "All",
         "isAccessibleForFree": true,
         "inLanguage": "en-IN",
-        "description": "Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes with station stops, platform direction, estimated fare, bus transfers, live nearest station, and BMRCL timetable frequency estimates.",
+        "description": "Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes with station stops, platform direction, estimated fare, bus transfers, live nearest station or bus stop, and BMRCL timetable frequency estimates.",
         "featureList": [
           "Bangalore Metro route planning",
           "Bengaluru Namma Metro route planning",
@@ -75,7 +75,7 @@
           "Purple Line, Green Line, and Yellow Line stations",
           "Estimated fare and journey time",
           "Platform direction guidance",
-          "Live nearest station from GPS",
+          "Live nearest metro station and bus stop from GPS",
           "BMRCL timetable frequency estimates"
         ]
       },
@@ -100,10 +100,10 @@
           },
           {
             "@type": "Question",
-            "name": "Can I use live GPS for the nearest metro station?",
+            "name": "Can I use live GPS for the nearest metro station or BMTC bus stop?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. If location permission is granted, the route finder can set the boarding station from the nearest Namma Metro station and show a live nearest station marker on the map."
+              "text": "Yes. If location permission is granted, the route finder can set the boarding point from the nearest Namma Metro station or supported BMTC bus stop."
             }
           }
         ]
@@ -2003,10 +2003,19 @@
     <div class="form-group">
       <label for="bus-from-input">From (Bus Stop / Area)</label>
       <div class="input-wrapper">
-        <input type="text" id="bus-from-input" placeholder="Search boarding area, e.g. Majestic, Silk Board..." autocomplete="off" />
+        <input type="text" id="bus-from-input" placeholder="Detecting nearest BMTC stop via GPS..." autocomplete="off" />
         <button type="button" class="clear-input-btn" id="bus-from-clear" aria-label="Clear bus boarding area">×</button>
         <div id="bus-from-results" class="autocomplete-results"></div>
       </div>
+      <div class="source-toggle">
+        <span class="source-toggle-label" id="bus-from-source-label">Live GPS from bus stop</span>
+        <label class="switch" aria-label="Use live GPS for BMTC boarding stop">
+          <input type="checkbox" id="bus-from-source-toggle" checked />
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+      <div class="source-helper" id="bus-from-source-helper">Turn off to search and choose a BMTC boarding stop manually.</div>
+      <div id="bus-gps-status" class="gps-status">Connecting to live GPS positioning...</div>
     </div>
 
     <div class="form-group">
@@ -2056,7 +2065,7 @@
 
   <h3>BMTC Bus Corridors Covered</h3>
   <p>
-    The BMTC bus planner includes starter route suggestions for major Bengaluru areas such as Majestic, Shivajinagar, KR Market, Silk Board, Electronic City, Whitefield, Marathahalli, Hebbal, Manyata Tech Park, Banashankari, Jayanagar, Kengeri, Peenya, and the airport corridor.
+    The BMTC bus planner includes starter route suggestions for major Bengaluru areas such as Majestic, Shivajinagar, KR Market, Silk Board, Electronic City, Whitefield, Marathahalli, Hebbal, Manyata Tech Park, Banashankari, Jayanagar, Kengeri, Peenya, and the airport corridor. If GPS permission is allowed, the planner can auto-select the nearest supported BMTC bus stop as the boarding point.
   </p>
 
   <h3>Accuracy Note</h3>
@@ -2085,7 +2094,9 @@
   let watchId = null;
   let isTracking = false;
   let currentNearestStation = null;
+  let currentNearestBusStop = null;
   let fromStationSource = 'live';
+  let busFromSource = 'live';
   let activeView = 'journey';
   let currentPanel = 'unselected';
   let currentRoutePath = [];
@@ -2341,6 +2352,52 @@
   };
 
   const BMTC_STOPS = [...new Set(BMTC_ROUTES.flatMap(route => route.stops))].sort();
+
+  const BMTC_STOP_COORDS = {
+    "Arekere": { lat: 12.8857, lng: 77.5984 },
+    "Banashankari": { lat: 12.9154, lng: 77.5736 },
+    "Bellandur": { lat: 12.9304, lng: 77.6784 },
+    "Bommanahalli": { lat: 12.9080, lng: 77.6235 },
+    "BTM Layout": { lat: 12.9166, lng: 77.6101 },
+    "Central Silk Board": { lat: 12.9177, lng: 77.6239 },
+    "Corporation": { lat: 12.9646, lng: 77.5880 },
+    "Domlur": { lat: 12.9608, lng: 77.6387 },
+    "Electronic City": { lat: 12.8452, lng: 77.6602 },
+    "Gottigere": { lat: 12.8551, lng: 77.5878 },
+    "HAL Airport Road": { lat: 12.9595, lng: 77.6555 },
+    "Hebbal": { lat: 13.0358, lng: 77.5970 },
+    "HRBR Layout": { lat: 13.0211, lng: 77.6479 },
+    "Indiranagar": { lat: 12.9783, lng: 77.6387 },
+    "ITPL": { lat: 12.9857, lng: 77.7376 },
+    "Jayanagar": { lat: 12.9250, lng: 77.5938 },
+    "Kempegowda Bus Station (Majestic)": { lat: 12.9767, lng: 77.5713 },
+    "Kempegowda International Airport": { lat: 13.1986, lng: 77.7066 },
+    "Kengeri": { lat: 12.9079, lng: 77.4765 },
+    "Koramangala": { lat: 12.9352, lng: 77.6245 },
+    "KR Market": { lat: 12.9613, lng: 77.5761 },
+    "KR Puram": { lat: 13.0075, lng: 77.6959 },
+    "Kundalahalli Gate": { lat: 12.9569, lng: 77.7144 },
+    "Lalbagh": { lat: 12.9507, lng: 77.5848 },
+    "Madiwala": { lat: 12.9212, lng: 77.6174 },
+    "Mahadevapura": { lat: 12.9913, lng: 77.6925 },
+    "Manyata Tech Park": { lat: 13.0428, lng: 77.6245 },
+    "Marathahalli": { lat: 12.9569, lng: 77.7011 },
+    "Mekhri Circle": { lat: 13.0147, lng: 77.5839 },
+    "MG Road": { lat: 12.9755, lng: 77.6068 },
+    "Nagavara": { lat: 13.0422, lng: 77.6200 },
+    "Nayandahalli": { lat: 12.9417, lng: 77.5251 },
+    "Peenya": { lat: 13.0329, lng: 77.5339 },
+    "Rajajinagar": { lat: 12.9915, lng: 77.5568 },
+    "Rajarajeshwari Nagar": { lat: 12.9367, lng: 77.5196 },
+    "Sarjapur Road": { lat: 12.9116, lng: 77.6769 },
+    "Shivajinagar": { lat: 12.9850, lng: 77.6051 },
+    "South End Circle": { lat: 12.9361, lng: 77.5767 },
+    "Tin Factory": { lat: 12.9969, lng: 77.6698 },
+    "Town Hall": { lat: 12.9635, lng: 77.5858 },
+    "Whitefield": { lat: 12.9698, lng: 77.7500 },
+    "Yelahanka": { lat: 13.1007, lng: 77.5963 },
+    "Yeshwanthpur": { lat: 13.0285, lng: 77.5402 }
+  };
 
   function getMapPoint(stationName) {
     const station = STATIONS[stationName];
@@ -3239,6 +3296,26 @@
     fromClear.style.display = (!isLive && fromInput.value.trim()) ? 'flex' : 'none';
   }
 
+  function setBusFromSource(source) {
+    busFromSource = source;
+    const fromInput = document.getElementById('bus-from-input');
+    const fromClear = document.getElementById('bus-from-clear');
+    const isLive = source === 'live';
+
+    document.getElementById('bus-from-source-toggle').checked = isLive;
+    document.getElementById('bus-from-source-label').innerText = isLive ? 'Live GPS from bus stop' : 'Manual bus stop';
+    document.getElementById('bus-from-source-helper').innerText = isLive
+      ? 'Turn off to search and choose a BMTC boarding stop manually.'
+      : 'Type to filter bus stops. Live GPS will not replace this field.';
+    fromInput.readOnly = isLive;
+    fromInput.placeholder = isLive ? 'Detecting nearest BMTC stop via GPS...' : 'Search boarding area, e.g. Majestic, Silk Board...';
+    fromClear.style.display = (!isLive && fromInput.value.trim()) ? 'flex' : 'none';
+  }
+
+  function shouldTrackGPS() {
+    return fromStationSource === 'live' || busFromSource === 'live';
+  }
+
   function updateLiveClock() {
     const now = new Date();
     document.getElementById('live-clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -3353,7 +3430,7 @@
     if (fromStationSource === 'live') {
       startGPSLiveTracking();
     } else {
-      stopGPSLiveTracking();
+      if (!shouldTrackGPS()) stopGPSLiveTracking();
       document.getElementById('gps-status').innerText = "Manual mode. Search and select your boarding station.";
     }
   });
@@ -3369,12 +3446,31 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
+  function findNearestPoint(userLat, userLng, points) {
+    let nearestName = null;
+    let minDistance = Infinity;
+
+    for (const [name, coords] of Object.entries(points)) {
+      if (!coords.lat || !coords.lng) continue;
+      const dist = getDistanceInKm(userLat, userLng, coords.lat, coords.lng);
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearestName = name;
+      }
+    }
+
+    return nearestName ? { name: nearestName, distanceKm: minDistance } : null;
+  }
+
   function startGPSLiveTracking() {
     const statusDiv = document.getElementById('gps-status');
+    const busStatusDiv = document.getElementById('bus-gps-status');
 
     if (!("geolocation" in navigator)) {
       setFromStationSource('manual');
+      setBusFromSource('manual');
       statusDiv.innerText = "GPS is not supported here. Search and select your boarding station manually.";
+      busStatusDiv.innerText = "GPS is not supported here. Search and select your BMTC boarding stop manually.";
       return;
     }
 
@@ -3385,44 +3481,56 @@
 
     isTracking = true;
     statusDiv.innerText = "Connecting to live GPS positioning...";
+    busStatusDiv.innerText = "Connecting to live GPS positioning...";
 
     watchId = navigator.geolocation.watchPosition(
       (position) => {
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
 
-        let nearestStation = null;
-        let minDistance = Infinity;
+        const nearestMetro = findNearestPoint(userLat, userLng, STATIONS);
+        const nearestBus = findNearestPoint(userLat, userLng, BMTC_STOP_COORDS);
 
-        for (const [station, coords] of Object.entries(STATIONS)) {
-          if (!coords.lat || !coords.lng) continue;
-          const dist = getDistanceInKm(userLat, userLng, coords.lat, coords.lng);
-          if (dist < minDistance) {
-            minDistance = dist;
-            nearestStation = station;
-          }
-        }
-
-        if (nearestStation) {
-          const nearestChanged = nearestStation !== currentNearestStation;
-          currentNearestStation = nearestStation;
-          const distInMeters = (minDistance * 1000).toFixed(0);
+        if (nearestMetro) {
+          const nearestChanged = nearestMetro.name !== currentNearestStation;
+          currentNearestStation = nearestMetro.name;
+          const distInMeters = (nearestMetro.distanceKm * 1000).toFixed(0);
 
           if (fromStationSource === 'live') {
             const fromInput = document.getElementById('from-input');
-            const stationChangedInInput = fromInput.value !== nearestStation;
-            fromInput.value = nearestStation;
+            const stationChangedInInput = fromInput.value !== nearestMetro.name;
+            fromInput.value = nearestMetro.name;
             document.getElementById('from-clear').style.display = 'none';
             if (nearestChanged || stationChangedInInput) {
               const destination = normalizeStationName(document.getElementById('to-input')?.value || '');
-              if (!STATIONS[destination]) renderUnselectedDualDirections(nearestStation);
+              if (!STATIONS[destination]) renderUnselectedDualDirections(nearestMetro.name);
               updateRouteFromInputs(true);
             }
-            statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestStation}</strong> (${distInMeters}m away)`;
+            statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
           } else {
-            statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestStation}</strong> (${distInMeters}m away). Using your typed boarding station.`;
+            statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
           }
           if (nearestChanged) renderMetroMap();
+        }
+
+        if (nearestBus) {
+          const busChanged = nearestBus.name !== currentNearestBusStop;
+          currentNearestBusStop = nearestBus.name;
+          const busDistInMeters = (nearestBus.distanceKm * 1000).toFixed(0);
+
+          if (busFromSource === 'live') {
+            const busFromInput = document.getElementById('bus-from-input');
+            const stopChangedInInput = busFromInput.value !== nearestBus.name;
+            busFromInput.value = nearestBus.name;
+            document.getElementById('bus-from-clear').style.display = 'none';
+            if (busChanged || stopChangedInInput) {
+              const destination = normalizeBusStop(document.getElementById('bus-to-input')?.value || '');
+              if (BMTC_STOPS.includes(destination)) renderBusRouteResults();
+            }
+            busStatusDiv.innerHTML = `Live GPS set boarding bus stop to <strong>${nearestBus.name}</strong> (${busDistInMeters}m away)`;
+          } else {
+            busStatusDiv.innerHTML = `Live GPS nearby: <strong>${nearestBus.name}</strong> (${busDistInMeters}m away). Using your typed bus stop.`;
+          }
         }
       },
       (err) => {
@@ -3432,7 +3540,9 @@
         }
         isTracking = false;
         setFromStationSource('manual');
+        setBusFromSource('manual');
         statusDiv.innerText = "GPS permission unavailable. Search and select your boarding station manually.";
+        busStatusDiv.innerText = "GPS permission unavailable. Search and select your BMTC boarding stop manually.";
       },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 8000 }
     );
@@ -4068,17 +4178,21 @@
     }
 
     input.addEventListener('input', () => {
+      if (input.readOnly) return;
       clearBtn.style.display = input.value ? 'flex' : 'none';
       render(input.value);
     });
 
-    input.addEventListener('focus', () => render(input.value));
+    input.addEventListener('focus', () => {
+      if (!input.readOnly) render(input.value);
+    });
 
     input.addEventListener('blur', () => {
       setTimeout(() => { results.style.display = 'none'; }, 160);
     });
 
     clearBtn.addEventListener('click', () => {
+      if (input.readOnly) return;
       input.value = '';
       clearBtn.style.display = 'none';
       results.style.display = 'none';
@@ -4087,11 +4201,22 @@
   }
 
   window.onload = function() {
-    startGPSLiveTracking();
     setupBusAutocomplete('bus-from-input', 'bus-from-results');
     setupBusAutocomplete('bus-to-input', 'bus-to-results');
+    setBusFromSource('live');
+    startGPSLiveTracking();
     document.getElementById('metro-mode-btn').addEventListener('click', () => setTransportMode('metro'));
     document.getElementById('bus-mode-btn').addEventListener('click', () => setTransportMode('bus'));
+    document.getElementById('bus-from-source-toggle').addEventListener('change', (e) => {
+      setBusFromSource(e.target.checked ? 'live' : 'manual');
+
+      if (busFromSource === 'live') {
+        startGPSLiveTracking();
+      } else {
+        if (!shouldTrackGPS()) stopGPSLiveTracking();
+        document.getElementById('bus-gps-status').innerText = "Manual mode. Search and select your BMTC boarding stop.";
+      }
+    });
     document.getElementById('bus-search-btn').addEventListener('click', renderBusRouteResults);
     document.getElementById('bus-swap-btn').addEventListener('click', () => {
       const fromInput = document.getElementById('bus-from-input');
