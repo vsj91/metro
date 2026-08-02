@@ -4,6 +4,7 @@
   let currentNearestBusStop = null;
   let fromStationSource = 'live';
   let busFromSource = 'live';
+  let activeTransportMode = 'metro';
   let activeView = 'journey';
   let currentPanel = 'unselected';
   let currentRoutePath = [];
@@ -618,11 +619,10 @@
   }
 
   function updatePanelVisibility() {
-    document.getElementById('map-card').style.display = activeView === 'map' ? 'block' : 'none';
-    document.getElementById('unselected-card').style.display = activeView === 'journey' && currentPanel === 'unselected' ? 'block' : 'none';
-    document.getElementById('result-card').style.display = activeView === 'journey' && currentPanel === 'result' ? 'block' : 'none';
-    document.getElementById('journey-view-btn').classList.toggle('active', activeView === 'journey');
-    document.getElementById('map-view-btn').classList.toggle('active', activeView === 'map');
+    const isBus = activeTransportMode === 'bus';
+    document.getElementById('map-card').style.display = isBus ? 'none' : 'block';
+    document.getElementById('unselected-card').style.display = !isBus && currentPanel === 'unselected' ? 'block' : 'none';
+    document.getElementById('result-card').style.display = !isBus && currentPanel === 'result' ? 'block' : 'none';
   }
 
   function requestLeafletAutoFit(resetTouch = false) {
@@ -1015,10 +1015,9 @@
     const focusBounds = isRouteMap
       ? currentRoutePath.map(stationLatLng).filter(Boolean)
       : bounds;
-    const shouldAutoFitMap = activeView === 'map' && leafletAutoFitRequested && (!leafletUserTouched || isRouteMap);
+    const shouldAutoFitMap = leafletAutoFitRequested && (!leafletUserTouched || isRouteMap);
 
     setTimeout(() => {
-      if (activeView !== 'map') return;
       if (!shouldAutoFitMap) {
         leafletAutoFitRequested = false;
         return;
@@ -1336,9 +1335,6 @@
   setFromStationSource('live');
   updatePanelVisibility();
   renderMetroMap();
-
-  document.getElementById('journey-view-btn').addEventListener('click', () => setActiveView('journey'));
-  document.getElementById('map-view-btn').addEventListener('click', () => setActiveView('map'));
 
   document.getElementById('from-source-toggle').addEventListener('change', (e) => {
     setFromStationSource(e.target.checked ? 'live' : 'manual');
@@ -1928,12 +1924,13 @@
 
   function setTransportMode(mode) {
     const isBus = mode === 'bus';
+    activeTransportMode = mode;
     document.getElementById('metro-mode-btn').classList.toggle('active', !isBus);
     document.getElementById('bus-mode-btn').classList.toggle('active', isBus);
     document.querySelector('.search-card').style.display = isBus ? 'none' : 'block';
-    document.getElementById('map-card').style.display = isBus ? 'none' : (activeView === 'map' ? 'block' : 'none');
-    document.getElementById('unselected-card').style.display = isBus ? 'none' : (activeView === 'journey' && currentPanel === 'unselected' ? 'block' : 'none');
-    document.getElementById('result-card').style.display = isBus ? 'none' : (activeView === 'journey' && currentPanel === 'result' ? 'block' : 'none');
+    document.getElementById('map-card').style.display = isBus ? 'none' : 'block';
+    document.getElementById('unselected-card').style.display = isBus ? 'none' : (currentPanel === 'unselected' ? 'block' : 'none');
+    document.getElementById('result-card').style.display = isBus ? 'none' : (currentPanel === 'result' ? 'block' : 'none');
     document.getElementById('bus-panel').classList.toggle('active', isBus);
   }
 

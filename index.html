@@ -673,35 +673,6 @@
       line-height: 1.4;
     }
 
-    .view-switcher {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      margin-top: 6px;
-      padding: 5px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: var(--surface-bg);
-    }
-
-    .view-switcher button {
-      border: 0;
-      border-radius: 11px;
-      padding: 10px 10px;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 800;
-      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
-    }
-
-    .view-switcher button.active {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 8px 18px rgba(0, 122, 255, 0.20);
-    }
-
     .map-card {
       display: none;
       overflow: hidden;
@@ -2005,10 +1976,6 @@
       </div>
     </div>
 
-    <div class="view-switcher" aria-label="Journey display mode">
-      <button type="button" id="journey-view-btn" class="active">Journey View</button>
-      <button type="button" id="map-view-btn">Map View</button>
-    </div>
   </main>
 
   <section id="map-card" class="card map-card" aria-label="Namma Metro schematic map">
@@ -2199,6 +2166,6 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=20260802-bmtc-live-3"></script>
+<script src="app.js?v=20260802-merged-metro"></script>
 </body>
 </html>
