@@ -23,9 +23,9 @@
   <meta name="theme-color" content="#f6f8fb" media="(prefers-color-scheme: light)" />
   
   <!-- SEO & Search Engine Optimization -->
-  <title>Bangalore Metro Route Finder | Bengaluru Namma Metro Fare & Timings</title>
-  <meta name="description" content="Plan Bangalore Metro and Bengaluru Namma Metro routes across Purple, Green, and Yellow Lines. Check route stops, estimated fare, timings, platform direction, and live nearest station." />
-  <meta name="keywords" content="Bangalore Metro route finder, Bengaluru Metro route map, Namma Metro route planner, BMRCL timetable, Bangalore metro fare, Bengaluru metro timings, Namma Metro platform, Purple Line, Green Line, Yellow Line, Electronic City metro" />
+  <title>Bangalore Metro & BMTC Bus Route Finder | Bengaluru Transit Planner</title>
+  <meta name="description" content="Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes. Check metro stops, estimated fare, timings, platform direction, bus route suggestions, transfers, and live nearest station." />
+  <meta name="keywords" content="Bangalore Metro route finder, BMTC bus route finder, Bengaluru transit planner, Bengaluru Metro route map, Namma Metro route planner, BMRCL timetable, Bangalore metro fare, Bengaluru bus route, BMTC route, Purple Line, Green Line, Yellow Line" />
   <meta name="robots" content="index, follow" />
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
   <meta name="author" content="Namma Metro Navigator" />
@@ -36,12 +36,12 @@
   <meta property="og:site_name" content="Namma Metro Navigator" />
   <meta property="og:locale" content="en_IN" />
   <meta property="og:url" content="https://vsj91.github.io/metro/" />
-  <meta property="og:title" content="Bangalore Metro Route Finder, Fare, Timings & Platform Navigator" />
-  <meta property="og:description" content="Calculate Bangalore Metro and Bengaluru Namma Metro routes, stops, fare estimates, platform directions, and BMRCL timetable frequency." />
+  <meta property="og:title" content="Bangalore Metro & BMTC Bus Route Finder" />
+  <meta property="og:description" content="Calculate Bangalore Metro, Bengaluru Namma Metro, and BMTC bus route options with stops, fares, timings, platform directions, and transfers." />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:url" content="https://vsj91.github.io/metro/" />
-  <meta name="twitter:title" content="Bangalore Metro Route Finder" />
-  <meta name="twitter:description" content="Plan Bangalore Metro journeys with route stops, fare estimate, platform direction, timetable frequency, and live nearest station." />
+  <meta name="twitter:title" content="Bangalore Metro & BMTC Route Finder" />
+  <meta name="twitter:description" content="Plan Bangalore Metro and BMTC bus journeys with route stops, fare estimates, platform direction, transfers, and timetable guidance." />
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
@@ -54,22 +54,24 @@
         "url": "https://vsj91.github.io/metro/",
         "name": "Namma Metro Navigator",
         "inLanguage": "en-IN",
-        "description": "Bangalore Metro and Bengaluru Namma Metro route finder for Purple Line, Green Line, and Yellow Line journeys."
+        "description": "Bangalore Metro, Bengaluru Namma Metro, and BMTC bus route finder for everyday transit planning."
       },
       {
         "@type": "WebApplication",
         "@id": "https://vsj91.github.io/metro/#app",
         "url": "https://vsj91.github.io/metro/",
-        "name": "Bangalore Metro Route Finder",
-        "alternateName": ["Bengaluru Metro Route Finder", "Namma Metro Navigator", "Bangalore Namma Metro Route Planner"],
+        "name": "Bangalore Metro and BMTC Bus Route Finder",
+        "alternateName": ["Bengaluru Transit Planner", "Bengaluru Metro Route Finder", "Namma Metro Navigator", "Bangalore Namma Metro Route Planner", "BMTC Bus Route Finder"],
         "applicationCategory": "TravelApplication",
         "operatingSystem": "All",
         "isAccessibleForFree": true,
         "inLanguage": "en-IN",
-        "description": "Plan Bangalore Metro and Bengaluru Namma Metro routes with station stops, platform direction, estimated fare, live nearest station, and BMRCL timetable frequency estimates.",
+        "description": "Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes with station stops, platform direction, estimated fare, bus transfers, live nearest station, and BMRCL timetable frequency estimates.",
         "featureList": [
           "Bangalore Metro route planning",
           "Bengaluru Namma Metro route planning",
+          "BMTC bus route suggestions",
+          "BMTC bus transfer planning",
           "Purple Line, Green Line, and Yellow Line stations",
           "Estimated fare and journey time",
           "Platform direction guidance",
@@ -418,6 +420,166 @@
     .line-badge-sm.Interchange { background: #f59e0b; color: #000; }
 
     .gps-status { font-size: 0.8rem; color: var(--accent); margin-top: 6px; line-height: 1.3; }
+
+    .transport-switcher {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin: 0 0 12px;
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: var(--surface-bg);
+    }
+
+    .transport-switcher button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 10px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 850;
+      transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .transport-switcher button.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(0, 122, 255, 0.20);
+    }
+
+    .bus-panel {
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bus-panel.active { display: block; }
+
+    .bus-helper {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+      margin: -4px 0 14px;
+    }
+
+    .bus-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .primary-action-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 850;
+      box-shadow: 0 10px 20px rgba(0, 122, 255, 0.20);
+    }
+
+    .secondary-action-btn {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: var(--surface-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .bus-route-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .bus-route-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface-bg);
+      padding: 13px;
+    }
+
+    .bus-route-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .bus-route-title {
+      font-size: 0.96rem;
+      font-weight: 850;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .bus-route-sub {
+      margin-top: 3px;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .bus-number-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      border-radius: 999px;
+      padding: 7px 9px;
+      background: var(--warning);
+      color: #111827;
+      font-size: 0.78rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .bus-route-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 9px 0;
+    }
+
+    .bus-route-meta span {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      color: var(--text);
+      background: var(--card-bg);
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .bus-stop-chain {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .bus-note {
+      margin-top: 12px;
+      border: 1px solid var(--warning-border);
+      background: var(--warning-soft);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
 
     .view-switcher {
       display: grid;
@@ -1696,6 +1858,10 @@
       body { padding: 10px; }
       .card { padding: 12px; }
       .header h1 { font-size: 1.2rem; }
+      .bus-actions,
+      .bus-route-meta {
+        grid-template-columns: 1fr;
+      }
       .map-toolbar { flex-direction: column; }
       .map-live-pill { align-self: flex-start; }
       .metric-card .val { font-size: 0.95rem; }
@@ -1708,11 +1874,16 @@
 <div class="container">
   <header class="header">
     <h1>Namma Metro Route Finder</h1>
-    <p>Bangalore Metro / Bengaluru Namma Metro • BMRCL Timetable & Platform Switch Navigator</p>
+    <p>Bangalore Metro / BMTC Bus • Bengaluru transit route planner</p>
     <div class="clock-banner">
       Bengaluru time: <span id="live-clock">--:--:-- --</span>
     </div>
   </header>
+
+  <div class="transport-switcher" aria-label="Transport mode">
+    <button type="button" id="metro-mode-btn" class="active">Metro</button>
+    <button type="button" id="bus-mode-btn">BMTC Bus</button>
+  </div>
 
   <main class="card search-card">
     <div class="form-group">
@@ -1822,12 +1993,53 @@
     </h3>
     <div class="route-timeline" id="timeline"></div>
   </section>
+
+  <section id="bus-panel" class="card bus-panel" aria-label="BMTC bus route finder">
+    <h2 style="font-size:1.12rem;margin-bottom:6px;">BMTC Bus Route Finder</h2>
+    <p class="bus-helper">
+      Search common Bengaluru bus stops and corridors to get BMTC route suggestions, transfer points, estimated fare, and travel time. This is a planning estimate, not live official BMTC data.
+    </p>
+
+    <div class="form-group">
+      <label for="bus-from-input">From (Bus Stop / Area)</label>
+      <div class="input-wrapper">
+        <input type="text" id="bus-from-input" placeholder="Search boarding area, e.g. Majestic, Silk Board..." autocomplete="off" />
+        <button type="button" class="clear-input-btn" id="bus-from-clear" aria-label="Clear bus boarding area">×</button>
+        <div id="bus-from-results" class="autocomplete-results"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="bus-to-input">To (Bus Stop / Area)</label>
+      <div class="input-wrapper">
+        <input type="text" id="bus-to-input" placeholder="Search destination area, e.g. Whitefield, Electronic City..." autocomplete="off" />
+        <button type="button" class="clear-input-btn" id="bus-to-clear" aria-label="Clear bus destination area">×</button>
+        <div id="bus-to-results" class="autocomplete-results"></div>
+      </div>
+    </div>
+
+    <div class="bus-actions">
+      <button type="button" class="primary-action-btn" id="bus-search-btn">Find BMTC Route</button>
+      <button type="button" class="secondary-action-btn" id="bus-swap-btn">Swap</button>
+    </div>
+
+    <div class="bus-route-list" id="bus-route-results">
+      <div class="bus-route-card">
+        <div class="bus-route-title">Popular BMTC corridors</div>
+        <div class="bus-route-sub">Try Majestic to Whitefield, Silk Board to Electronic City, Hebbal to Manyata Tech Park, or Banashankari to KR Market.</div>
+      </div>
+    </div>
+
+    <div class="bus-note">
+      BMTC routes, fares, frequency, traffic delays, and stop names can change. Verify final route and live timings with official BMTC sources or the bus stop display before travel.
+    </div>
+  </section>
 </div>
 
 <section class="card seo-content" aria-label="Bangalore Metro route finder information">
-  <h2>Bangalore Metro Route Finder for Bengaluru Namma Metro</h2>
+  <h2>Bangalore Metro and BMTC Bus Route Finder</h2>
   <p>
-    Use this Bangalore Metro route finder to plan Bengaluru Namma Metro trips across the Purple Line, Green Line, and Yellow Line. The planner helps compare boarding and destination stations, route stops, interchange points, estimated fare, platform direction, BMRCL timetable frequency, and live nearest station from GPS.
+    Use this Bangalore Metro and BMTC bus route finder to plan Bengaluru transit trips across the Purple Line, Green Line, Yellow Line, and common BMTC bus corridors. The planner helps compare boarding and destination points, route stops, interchange or transfer points, estimated fare, platform direction, BMRCL timetable frequency, BMTC bus options, and live nearest metro station from GPS.
   </p>
 
   <h3>Metro Lines Covered</h3>
@@ -1842,15 +2054,20 @@
     Popular Bangalore Metro route searches include Majestic to Whitefield, Jayanagar to Electronic City, RV Road to Bommasandra, Indiranagar to Majestic, Kengeri to MG Road, and Silk Institute to Cubbon Park. Select the stations above to calculate the exact route and platform direction.
   </p>
 
+  <h3>BMTC Bus Corridors Covered</h3>
+  <p>
+    The BMTC bus planner includes starter route suggestions for major Bengaluru areas such as Majestic, Shivajinagar, KR Market, Silk Board, Electronic City, Whitefield, Marathahalli, Hebbal, Manyata Tech Park, Banashankari, Jayanagar, Kengeri, Peenya, and the airport corridor.
+  </p>
+
   <h3>Accuracy Note</h3>
   <p>
-    This is an independent journey planning tool. Metro schedules, platforms, fares, and operational changes can change. For the official and latest BMRCL information, check <a href="https://www.bmrc.co.in/" target="_blank" rel="noopener noreferrer">bmrc.co.in</a>.
+    This is an independent journey planning tool. Metro schedules, BMTC routes, platforms, fares, and operational changes can change. For official and latest metro information, check <a href="https://www.bmrc.co.in/" target="_blank" rel="noopener noreferrer">bmrc.co.in</a>.
   </p>
 </section>
 
 <footer>
   <p class="disclaimer">
-    <strong>Terms & Conditions:</strong> Train schedules use BMRCL timetable frequency bands where available. Platform directions, fares, and station arrival times are estimates for journey planning. For accurate and latest results, visit the official <a href="https://www.bmrc.co.in/" target="_blank" rel="noopener noreferrer">BMRCL website</a>.
+    <strong>Terms & Conditions:</strong> Train schedules use BMRCL timetable frequency bands where available. BMTC routes, platform directions, fares, and arrival times are estimates for journey planning. For accurate and latest metro results, visit the official <a href="https://www.bmrc.co.in/" target="_blank" rel="noopener noreferrer">BMRCL website</a>.
   </p>
   <nav class="footer-links" aria-label="Site information">
     <a href="about.html">About</a>
@@ -2085,6 +2302,45 @@
     "Yellow Line": "#eab308",
     "Interchange": "#f59e0b"
   };
+
+  const BMTC_ROUTES = [
+    { number: "335E", name: "Majestic - Whitefield", frequency: "10-15 min", stops: ["Kempegowda Bus Station (Majestic)", "Corporation", "MG Road", "Indiranagar", "Tin Factory", "KR Puram", "Mahadevapura", "Marathahalli", "Kundalahalli Gate", "Whitefield"] },
+    { number: "500D", name: "Hebbal - Silk Board - Electronic City", frequency: "12-18 min", stops: ["Hebbal", "Manyata Tech Park", "Nagavara", "HRBR Layout", "Indiranagar", "Domlur", "Koramangala", "Madiwala", "Central Silk Board", "Electronic City"] },
+    { number: "356C", name: "Majestic - Electronic City", frequency: "15-20 min", stops: ["Kempegowda Bus Station (Majestic)", "Town Hall", "Lalbagh", "Jayanagar", "BTM Layout", "Central Silk Board", "Bommanahalli", "Electronic City"] },
+    { number: "V-500CA", name: "ITPL - Silk Board", frequency: "12-18 min", stops: ["Whitefield", "ITPL", "Kundalahalli Gate", "Marathahalli", "HAL Airport Road", "Domlur", "Koramangala", "Madiwala", "Central Silk Board"] },
+    { number: "KIA-8", name: "Electronic City - Airport", frequency: "30-45 min", stops: ["Electronic City", "Central Silk Board", "Madiwala", "Koramangala", "Domlur", "Hebbal", "Kempegowda International Airport"] },
+    { number: "KIA-9", name: "Majestic - Airport", frequency: "30-45 min", stops: ["Kempegowda Bus Station (Majestic)", "Mekhri Circle", "Hebbal", "Yelahanka", "Kempegowda International Airport"] },
+    { number: "201", name: "Banashankari - KR Market - Shivajinagar", frequency: "8-12 min", stops: ["Banashankari", "Jayanagar", "South End Circle", "Lalbagh", "KR Market", "Corporation", "Shivajinagar"] },
+    { number: "401K", name: "Yeshwanthpur - KR Puram", frequency: "15-20 min", stops: ["Yeshwanthpur", "Mekhri Circle", "Hebbal", "Nagavara", "Manyata Tech Park", "KR Puram"] },
+    { number: "V-500KS", name: "Kengeri - Silk Board", frequency: "15-25 min", stops: ["Kengeri", "Rajarajeshwari Nagar", "Nayandahalli", "Banashankari", "Jayanagar", "BTM Layout", "Central Silk Board"] },
+    { number: "271D", name: "Peenya - Majestic - Shivajinagar", frequency: "10-18 min", stops: ["Peenya", "Yeshwanthpur", "Rajajinagar", "Kempegowda Bus Station (Majestic)", "Corporation", "Shivajinagar"] },
+    { number: "G-4", name: "Bannerghatta Road - MG Road", frequency: "10-15 min", stops: ["Gottigere", "Arekere", "JP Nagar", "Jayanagar", "Lalbagh", "Corporation", "MG Road"] },
+    { number: "342F", name: "Sarjapur Road - Shivajinagar", frequency: "15-25 min", stops: ["Sarjapur Road", "Bellandur", "Marathahalli", "Domlur", "MG Road", "Shivajinagar"] }
+  ];
+
+  const BMTC_STOP_ALIASES = {
+    "Majestic": "Kempegowda Bus Station (Majestic)",
+    "KBS": "Kempegowda Bus Station (Majestic)",
+    "Kempegowda Bus Stand": "Kempegowda Bus Station (Majestic)",
+    "Silk Board": "Central Silk Board",
+    "KR Market": "KR Market",
+    "K R Market": "KR Market",
+    "Airport": "Kempegowda International Airport",
+    "BIAL": "Kempegowda International Airport",
+    "KIA": "Kempegowda International Airport",
+    "Manyata": "Manyata Tech Park",
+    "ITPL": "ITPL",
+    "White Field": "Whitefield",
+    "E City": "Electronic City",
+    "ECity": "Electronic City",
+    "RR Nagar": "Rajarajeshwari Nagar",
+    "Nayandahalli": "Nayandahalli",
+    "MG Road": "MG Road",
+    "M G Road": "MG Road",
+    "Shivaji Nagar": "Shivajinagar"
+  };
+
+  const BMTC_STOPS = [...new Set(BMTC_ROUTES.flatMap(route => route.stops))].sort();
 
   function getMapPoint(stationName) {
     const station = STATIONS[stationName];
@@ -3643,8 +3899,210 @@
     }
   }
 
+  function setTransportMode(mode) {
+    const isBus = mode === 'bus';
+    document.getElementById('metro-mode-btn').classList.toggle('active', !isBus);
+    document.getElementById('bus-mode-btn').classList.toggle('active', isBus);
+    document.querySelector('.search-card').style.display = isBus ? 'none' : 'block';
+    document.getElementById('map-card').style.display = isBus ? 'none' : (activeView === 'map' ? 'block' : 'none');
+    document.getElementById('unselected-card').style.display = isBus ? 'none' : (activeView === 'journey' && currentPanel === 'unselected' ? 'block' : 'none');
+    document.getElementById('result-card').style.display = isBus ? 'none' : (activeView === 'journey' && currentPanel === 'result' ? 'block' : 'none');
+    document.getElementById('bus-panel').classList.toggle('active', isBus);
+  }
+
+  function normalizeBusStop(value) {
+    const raw = (value || '').trim();
+    if (!raw) return '';
+    const aliasMatch = Object.entries(BMTC_STOP_ALIASES).find(([alias]) => alias.toLowerCase() === raw.toLowerCase());
+    if (aliasMatch) return aliasMatch[1];
+    return BMTC_STOPS.find(stop => stop.toLowerCase() === raw.toLowerCase()) || raw;
+  }
+
+  function estimateBusFare(stopCount) {
+    return Math.min(75, Math.max(10, Math.ceil(10 + stopCount * 4.5)));
+  }
+
+  function routeSegment(route, from, to) {
+    const fromIndex = route.stops.indexOf(from);
+    const toIndex = route.stops.indexOf(to);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return null;
+    const start = Math.min(fromIndex, toIndex);
+    const end = Math.max(fromIndex, toIndex);
+    const stops = route.stops.slice(start, end + 1);
+    if (fromIndex > toIndex) stops.reverse();
+    return {
+      route,
+      from,
+      to,
+      stops,
+      stopCount: Math.abs(toIndex - fromIndex)
+    };
+  }
+
+  function findBusSuggestions(from, to) {
+    const direct = BMTC_ROUTES
+      .map(route => routeSegment(route, from, to))
+      .filter(Boolean)
+      .map(segment => ({ type: 'direct', segments: [segment] }));
+
+    const transfers = [];
+    BMTC_ROUTES.forEach(firstRoute => {
+      if (!firstRoute.stops.includes(from)) return;
+      BMTC_ROUTES.forEach(secondRoute => {
+        if (firstRoute.number === secondRoute.number || !secondRoute.stops.includes(to)) return;
+        const transferStops = firstRoute.stops.filter(stop => secondRoute.stops.includes(stop) && stop !== from && stop !== to);
+        transferStops.forEach(transfer => {
+          const first = routeSegment(firstRoute, from, transfer);
+          const second = routeSegment(secondRoute, transfer, to);
+          if (first && second) transfers.push({ type: 'transfer', transfer, segments: [first, second] });
+        });
+      });
+    });
+
+    return [...direct, ...transfers]
+      .map(option => {
+        const stopCount = option.segments.reduce((sum, segment) => sum + segment.stopCount, 0);
+        return {
+          ...option,
+          stopCount,
+          fare: estimateBusFare(stopCount),
+          minutes: Math.round(stopCount * 4.5 + (option.type === 'transfer' ? 10 : 0)),
+          routeNumbers: option.segments.map(segment => segment.route.number).join(' + ')
+        };
+      })
+      .sort((a, b) => a.segments.length - b.segments.length || a.stopCount - b.stopCount)
+      .slice(0, 4);
+  }
+
+  function renderBusRouteResults() {
+    const from = normalizeBusStop(document.getElementById('bus-from-input').value);
+    const to = normalizeBusStop(document.getElementById('bus-to-input').value);
+    const container = document.getElementById('bus-route-results');
+
+    if (!BMTC_STOPS.includes(from) || !BMTC_STOPS.includes(to)) {
+      container.innerHTML = `
+        <div class="bus-route-card">
+          <div class="bus-route-title">Choose valid BMTC stops</div>
+          <div class="bus-route-sub">Select from the dropdown suggestions for both boarding and destination areas.</div>
+        </div>
+      `;
+      return;
+    }
+
+    if (from === to) {
+      container.innerHTML = `
+        <div class="bus-route-card">
+          <div class="bus-route-title">Same boarding and destination</div>
+          <div class="bus-route-sub">Pick a different destination to see BMTC route options.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const suggestions = findBusSuggestions(from, to);
+    if (!suggestions.length) {
+      container.innerHTML = `
+        <div class="bus-route-card">
+          <div class="bus-route-title">No route in the starter BMTC dataset</div>
+          <div class="bus-route-sub">Try nearby transfer hubs such as Majestic, Shivajinagar, KR Market, Silk Board, Hebbal, Marathahalli, or Banashankari.</div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = suggestions.map((option, index) => {
+      const title = option.type === 'direct'
+        ? `${from} to ${to}`
+        : `${from} to ${to} via ${option.transfer}`;
+      const chain = option.segments.map(segment =>
+        `<strong>${segment.route.number}</strong>: ${segment.stops.map(escapeHtml).join(' → ')}`
+      ).join('<br>');
+      const frequency = option.segments.map(segment => `${segment.route.number}: ${segment.route.frequency}`).join(' • ');
+      return `
+        <div class="bus-route-card">
+          <div class="bus-route-head">
+            <div>
+              <div class="bus-route-title">${index === 0 ? 'Best option: ' : ''}${escapeHtml(title)}</div>
+              <div class="bus-route-sub">${option.type === 'direct' ? 'Direct BMTC corridor' : 'One-transfer BMTC corridor'} • ${escapeHtml(frequency)}</div>
+            </div>
+            <span class="bus-number-pill">${escapeHtml(option.routeNumbers)}</span>
+          </div>
+          <div class="bus-route-meta">
+            <span>~₹${option.fare}</span>
+            <span>~${option.minutes} min</span>
+            <span>${option.stopCount} stops</span>
+          </div>
+          <div class="bus-stop-chain">${chain}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function setupBusAutocomplete(inputId, resultsId) {
+    const input = document.getElementById(inputId);
+    const results = document.getElementById(resultsId);
+    const clearBtn = document.getElementById(inputId === 'bus-from-input' ? 'bus-from-clear' : 'bus-to-clear');
+
+    function render(filterText = '') {
+      const text = filterText.toLowerCase();
+      const matches = BMTC_STOPS
+        .filter(stop => stop.toLowerCase().includes(text))
+        .slice(0, 9);
+      results.innerHTML = '';
+      if (!matches.length || !text) {
+        results.style.display = 'none';
+        return;
+      }
+      matches.forEach(stop => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.innerHTML = `<span>${escapeHtml(stop)}</span><span class="line-badge-sm Interchange">BMTC</span>`;
+        item.onclick = () => {
+          input.value = stop;
+          results.style.display = 'none';
+          clearBtn.style.display = 'flex';
+        };
+        results.appendChild(item);
+      });
+      results.style.display = 'block';
+    }
+
+    input.addEventListener('input', () => {
+      clearBtn.style.display = input.value ? 'flex' : 'none';
+      render(input.value);
+    });
+
+    input.addEventListener('focus', () => render(input.value));
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => { results.style.display = 'none'; }, 160);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.style.display = 'none';
+      results.style.display = 'none';
+      input.focus();
+    });
+  }
+
   window.onload = function() {
     startGPSLiveTracking();
+    setupBusAutocomplete('bus-from-input', 'bus-from-results');
+    setupBusAutocomplete('bus-to-input', 'bus-to-results');
+    document.getElementById('metro-mode-btn').addEventListener('click', () => setTransportMode('metro'));
+    document.getElementById('bus-mode-btn').addEventListener('click', () => setTransportMode('bus'));
+    document.getElementById('bus-search-btn').addEventListener('click', renderBusRouteResults);
+    document.getElementById('bus-swap-btn').addEventListener('click', () => {
+      const fromInput = document.getElementById('bus-from-input');
+      const toInput = document.getElementById('bus-to-input');
+      const nextFrom = toInput.value;
+      toInput.value = fromInput.value;
+      fromInput.value = nextFrom;
+      document.getElementById('bus-from-clear').style.display = fromInput.value ? 'flex' : 'none';
+      document.getElementById('bus-to-clear').style.display = toInput.value ? 'flex' : 'none';
+      renderBusRouteResults();
+    });
   };
 </script>
 </body>
