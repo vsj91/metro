@@ -228,7 +228,7 @@
   const BMTC_ROUTES = [
     { number: "335E", name: "Majestic - Whitefield", frequency: "10-15 min", stops: ["Kempegowda Bus Station (Majestic)", "Corporation", "MG Road", "Indiranagar", "Tin Factory", "KR Puram", "Mahadevapura", "Marathahalli", "Kundalahalli Gate", "Whitefield"] },
     { number: "500D", name: "Hebbal - Silk Board - Electronic City", frequency: "12-18 min", stops: ["Hebbal", "Manyata Tech Park", "Nagavara", "HRBR Layout", "Indiranagar", "Domlur", "Koramangala", "Madiwala", "Central Silk Board", "Electronic City"] },
-    { number: "356C", name: "Majestic - Electronic City", frequency: "15-20 min", stops: ["Kempegowda Bus Station (Majestic)", "Town Hall", "Lalbagh", "Jayanagar", "BTM Layout", "Central Silk Board", "Bommanahalli", "Electronic City"] },
+    { number: "356C", name: "Majestic - Electronic City", frequency: "15-20 min", stops: ["Kempegowda Bus Station (Majestic)", "Town Hall", "Lalbagh", "Jayanagar", "BTM Layout", "Central Silk Board", "Bommanahalli", "Hongasandra", "Kudlu Gate", "Singasandra", "Hosa Road", "Beratena Agrahara", "Electronic City"] },
     { number: "V-500CA", name: "ITPL - Silk Board", frequency: "12-18 min", stops: ["Whitefield", "ITPL", "Kundalahalli Gate", "Marathahalli", "HAL Airport Road", "Domlur", "Koramangala", "Madiwala", "Central Silk Board"] },
     { number: "KIA-8", name: "Electronic City - Airport", frequency: "30-45 min", stops: ["Electronic City", "Central Silk Board", "Madiwala", "Koramangala", "Domlur", "Hebbal", "Kempegowda International Airport"] },
     { number: "KIA-9", name: "Majestic - Airport", frequency: "30-45 min", stops: ["Kempegowda Bus Station (Majestic)", "Mekhri Circle", "Hebbal", "Yelahanka", "Kempegowda International Airport"] },
@@ -267,6 +267,7 @@
   const BMTC_STOP_COORDS = {
     "Arekere": { lat: 12.8857, lng: 77.5984 },
     "Banashankari": { lat: 12.9154, lng: 77.5736 },
+    "Beratena Agrahara": { lat: 12.8584, lng: 77.6582 },
     "Bellandur": { lat: 12.9304, lng: 77.6784 },
     "Bommanahalli": { lat: 12.9080, lng: 77.6235 },
     "BTM Layout": { lat: 12.9166, lng: 77.6101 },
@@ -277,6 +278,8 @@
     "Gottigere": { lat: 12.8551, lng: 77.5878 },
     "HAL Airport Road": { lat: 12.9595, lng: 77.6555 },
     "Hebbal": { lat: 13.0358, lng: 77.5970 },
+    "Hongasandra": { lat: 12.9001, lng: 77.6322 },
+    "Hosa Road": { lat: 12.8708, lng: 77.6525 },
     "HRBR Layout": { lat: 13.0211, lng: 77.6479 },
     "Indiranagar": { lat: 12.9783, lng: 77.6387 },
     "ITPL": { lat: 12.9857, lng: 77.7376 },
@@ -287,6 +290,7 @@
     "Koramangala": { lat: 12.9352, lng: 77.6245 },
     "KR Market": { lat: 12.9613, lng: 77.5761 },
     "KR Puram": { lat: 13.0075, lng: 77.6959 },
+    "Kudlu Gate": { lat: 12.8899, lng: 77.6393 },
     "Kundalahalli Gate": { lat: 12.9569, lng: 77.7144 },
     "Lalbagh": { lat: 12.9507, lng: 77.5848 },
     "Madiwala": { lat: 12.9212, lng: 77.6174 },
@@ -302,6 +306,7 @@
     "Rajarajeshwari Nagar": { lat: 12.9367, lng: 77.5196 },
     "Sarjapur Road": { lat: 12.9116, lng: 77.6769 },
     "Shivajinagar": { lat: 12.9850, lng: 77.6051 },
+    "Singasandra": { lat: 12.8807, lng: 77.6450 },
     "South End Circle": { lat: 12.9361, lng: 77.5767 },
     "Tin Factory": { lat: 12.9969, lng: 77.6698 },
     "Town Hall": { lat: 12.9635, lng: 77.5858 },
@@ -1981,7 +1986,7 @@
       });
     });
 
-    return [...direct, ...transfers]
+    const options = [...direct, ...transfers]
       .map(option => {
         const stopCount = option.segments.reduce((sum, segment) => sum + segment.stopCount, 0);
         return {
@@ -1991,7 +1996,11 @@
           minutes: Math.round(stopCount * 4.5 + (option.type === 'transfer' ? 10 : 0)),
           routeNumbers: option.segments.map(segment => segment.route.number).join(' + ')
         };
-      })
+      });
+    const bestDirectStops = Math.min(...options.filter(option => option.type === 'direct').map(option => option.stopCount));
+
+    return options
+      .filter(option => option.type === 'direct' || !Number.isFinite(bestDirectStops) || option.stopCount < bestDirectStops)
       .sort((a, b) => a.segments.length - b.segments.length || a.stopCount - b.stopCount)
       .slice(0, 4);
   }
