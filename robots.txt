@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vinaysjain1991.github.io/RoutePlanner/sitemap.xml
+Sitemap: https://vsj91.github.io/metro/sitemap.xml
