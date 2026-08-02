@@ -1978,38 +1978,6 @@
 
   </main>
 
-  <section id="map-card" class="card map-card" aria-label="Namma Metro schematic map">
-    <div class="map-toolbar">
-      <div class="map-title-row">
-        <div class="map-icon" aria-hidden="true">M</div>
-        <div>
-          <h2>Live Metro Map</h2>
-          <p id="map-summary">Allow GPS or choose stations to highlight your route.</p>
-        </div>
-      </div>
-      <div class="map-status-stack">
-        <div class="map-live-pill" id="map-live-pill">Live: waiting</div>
-        <div class="map-mini-stats" aria-label="Map route stats">
-          <span class="map-mini-stat" id="map-stops-stat">-- stops</span>
-          <span class="map-mini-stat" id="map-lines-stat">-- lines</span>
-        </div>
-      </div>
-    </div>
-    <div class="metro-map-wrap">
-      <div id="leaflet-map" class="leaflet-metro-map" aria-label="Interactive Namma Metro map"></div>
-      <div class="html-metro-map" id="html-metro-map" role="img" aria-label="Namma Metro route map"></div>
-      <svg class="metro-map" id="metro-map" viewBox="0 0 1100 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Namma Metro route map"></svg>
-    </div>
-    <div class="map-legend">
-      <span><i class="legend-line" style="background:var(--purple-line);"></i>Purple</span>
-      <span><i class="legend-line" style="background:var(--green-line);"></i>Green</span>
-      <span><i class="legend-line" style="background:var(--yellow-line);"></i>Yellow</span>
-      <span>🚆 live nearest station</span>
-      <span>Colored path: selected route</span>
-      <span>Free tiles: Esri satellite / OpenStreetMap</span>
-    </div>
-  </section>
-
   <!-- Unselected Mode Card: Shows Dual-Direction Timetable Estimates -->
   <section id="unselected-card" class="card" style="display: block;">
     <h3 style="margin-bottom: 10px; font-size: 0.82rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em;">
@@ -2051,6 +2019,38 @@
       JOURNEY PATH & STATION ARRIVAL ESTIMATES
     </h3>
     <div class="route-timeline" id="timeline"></div>
+  </section>
+
+  <section id="map-card" class="card map-card" aria-label="Namma Metro schematic map">
+    <div class="map-toolbar">
+      <div class="map-title-row">
+        <div class="map-icon" aria-hidden="true">M</div>
+        <div>
+          <h2>Live Metro Map</h2>
+          <p id="map-summary">Allow GPS or choose stations to highlight your route.</p>
+        </div>
+      </div>
+      <div class="map-status-stack">
+        <div class="map-live-pill" id="map-live-pill">Live: waiting</div>
+        <div class="map-mini-stats" aria-label="Map route stats">
+          <span class="map-mini-stat" id="map-stops-stat">-- stops</span>
+          <span class="map-mini-stat" id="map-lines-stat">-- lines</span>
+        </div>
+      </div>
+    </div>
+    <div class="metro-map-wrap">
+      <div id="leaflet-map" class="leaflet-metro-map" aria-label="Interactive Namma Metro map"></div>
+      <div class="html-metro-map" id="html-metro-map" role="img" aria-label="Namma Metro route map"></div>
+      <svg class="metro-map" id="metro-map" viewBox="0 0 1100 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Namma Metro route map"></svg>
+    </div>
+    <div class="map-legend">
+      <span><i class="legend-line" style="background:var(--purple-line);"></i>Purple</span>
+      <span><i class="legend-line" style="background:var(--green-line);"></i>Green</span>
+      <span><i class="legend-line" style="background:var(--yellow-line);"></i>Yellow</span>
+      <span>🚆 live nearest station</span>
+      <span>Colored path: selected route</span>
+      <span>Free tiles: Esri satellite / OpenStreetMap</span>
+    </div>
   </section>
 
   <section id="bus-panel" class="card bus-panel" aria-label="BMTC bus route finder">
