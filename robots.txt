@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vsj91.github.io/metro/sitemap.xml
+Sitemap: https://blrgo.com/sitemap.xml
