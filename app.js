@@ -2766,8 +2766,26 @@
     });
   }
 
+  async function applyInitialMetroSearchQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const query = (params.get('q') || params.get('place') || '').trim();
+    if (!query) return;
+
+    const toInput = document.getElementById('to-input');
+    toInput.value = query;
+    document.getElementById('to-clear').style.display = 'flex';
+    const station = normalizeStationName(query);
+    if (STATIONS[station]) {
+      toInput.value = station;
+      requestLeafletAutoFit(true);
+      updateRouteFromInputs(false);
+      return;
+    }
+    await resolvePlaceToNearestStation('to-input', query, { silent: true });
+  }
+
   window.onload = function() {
-    loadTransitApiData().catch(() => updateTransitApiStatus());
+    const transitDataPromise = loadTransitApiData().catch(() => updateTransitApiStatus());
     if (TRANSIT_API_CONFIG.refreshMs > 0) {
       window.setInterval(() => {
         loadTransitApiData().catch(() => updateTransitApiStatus());
@@ -2777,6 +2795,7 @@
     setupBusAutocomplete('bus-to-input', 'bus-to-results');
     setBusFromSource('live');
     startGPSLiveTracking();
+    transitDataPromise.then(applyInitialMetroSearchQuery);
     document.getElementById('metro-mode-btn').addEventListener('click', () => setTransportMode('metro'));
     document.getElementById('bus-mode-btn').addEventListener('click', () => setTransportMode('bus'));
     document.getElementById('bus-route-results').addEventListener('click', (event) => {
