@@ -10,7 +10,7 @@ Keep URLs empty to use the bundled fallback data. Add public CORS-enabled endpoi
     refreshMs: 60000,
     geocodingUrl: "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=in&viewbox=77.45,13.18,77.85,12.75&bounded=1&q={query}%2C%20Bengaluru%2C%20Karnataka%2C%20India",
     metro: {
-      stationsUrl: "https://data.opencity.in/dataset/746940cd-cca7-45f5-a3bc-8b0034663605/resource/86e5641c-496c-43fa-8143-bae5f255afc4/download/e13b04fa-bcd8-4fb9-930b-d67ed31bc782.kml",
+      stationsUrl: "data/metro-stations.kml",
       scheduleUrl: "https://example.com/metro/schedules",
       faresUrl: "https://example.com/metro/fares",
       linesUrl: "https://example.com/metro/lines",
@@ -18,7 +18,7 @@ Keep URLs empty to use the bundled fallback data. Add public CORS-enabled endpoi
     },
     bus: {
       routesUrl: "https://example.com/bmtc/routes",
-      stopsUrl: "https://data.opencity.in/api/3/action/datastore_search?resource_id=cce1032b-875e-4722-9cdc-f8fe3601c82b&limit=5000",
+      stopsUrl: "data/bmtc-stops.json",
       arrivalsUrl: "https://example.com/bmtc/arrivals?stop={stop}",
       vehiclesUrl: "https://example.com/bmtc/vehicles?route={route}"
     }
@@ -88,4 +88,6 @@ BMTC vehicle records should include:
 
 ## Notes
 
-The current checked-in URLs call OpenCity public datasets for BMRCL station locations and BMTC stop locations. Official live feeds are often protected by CORS rules, API keys, or unreliable legacy hosts. For a public GitHub Pages site, do not put private keys in `index.html`; use a small serverless proxy and expose only the cleaned JSON needed by this app.
+The checked-in OpenCity public datasets are cached under `data/` so GitHub Pages can serve them from the same origin as the app. This avoids browser CORS blocks from third-party data hosts. The `.github/workflows/update-transit-data.yml` workflow refreshes the cached BMRCL station KML and BMTC stop JSON every day and can also be run manually from GitHub Actions.
+
+Official live feeds are often protected by CORS rules, API keys, or unreliable legacy hosts. For live train or bus GPS feeds, do not put private keys in `index.html`; use a small serverless proxy and expose only the cleaned JSON needed by this app.

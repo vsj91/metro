@@ -502,7 +502,7 @@
     };
   }
 
-  function normalizeBusStop(record) {
+  function normalizeBusStopRecord(record) {
     const name = normalizeBusStopName(record);
     const coords = coordinatesFrom(record);
     if (!name) return null;
@@ -577,7 +577,7 @@
 
     const stopPayload = await fetchTransitJson(TRANSIT_API_CONFIG.bus.stopsUrl).catch(() => null);
     const apiStops = unwrapRecords(stopPayload)
-      .map(normalizeBusStop)
+      .map(normalizeBusStopRecord)
       .filter(Boolean);
     if (apiStops.length) {
       apiStops.forEach(stop => {
