@@ -637,6 +637,17 @@
     renderMetroMap();
   }
 
+  function refreshMetroLiveViews() {
+    if (activeTransportMode !== 'metro') return;
+
+    if (currentPanel === 'result') {
+      calculateRoute(true);
+      return;
+    }
+
+    renderMetroMap();
+  }
+
   function updateMapStats() {
     const stopsStat = document.getElementById('map-stops-stat');
     const linesStat = document.getElementById('map-lines-stat');
@@ -892,7 +903,6 @@
     if (htmlMap) htmlMap.style.display = 'none';
 
     updateMapStats();
-    leafletLayerGroup.clearLayers();
 
     const summary = document.getElementById('map-summary');
     const livePill = document.getElementById('map-live-pill');
@@ -917,6 +927,7 @@
       return true;
     }
     lastLeafletRenderKey = renderKey;
+    leafletLayerGroup.clearLayers();
 
     if (isRouteMap) {
       for (let i = 0; i < currentRoutePath.length - 1; i++) {
@@ -1405,6 +1416,7 @@
 
         if (nearestMetro) {
           const nearestChanged = nearestMetro.name !== currentNearestStation;
+          let routeUpdatedFromLiveInput = false;
           currentNearestStation = nearestMetro.name;
           const distInMeters = (nearestMetro.distanceKm * 1000).toFixed(0);
 
@@ -1417,12 +1429,13 @@
               const destination = normalizeStationName(document.getElementById('to-input')?.value || '');
               if (!STATIONS[destination]) renderUnselectedDualDirections(nearestMetro.name);
               updateRouteFromInputs(true);
+              routeUpdatedFromLiveInput = true;
             }
             statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
           } else {
             statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
           }
-          if (nearestChanged) renderMetroMap();
+          if (nearestChanged && !routeUpdatedFromLiveInput) refreshMetroLiveViews();
         }
 
         if (nearestBus) {
@@ -1932,6 +1945,7 @@
     document.getElementById('unselected-card').style.display = isBus ? 'none' : (currentPanel === 'unselected' ? 'block' : 'none');
     document.getElementById('result-card').style.display = isBus ? 'none' : (currentPanel === 'result' ? 'block' : 'none');
     document.getElementById('bus-panel').classList.toggle('active', isBus);
+    if (!isBus) refreshMetroLiveViews();
   }
 
   function normalizeBusStop(value) {
