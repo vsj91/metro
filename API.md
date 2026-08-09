@@ -8,6 +8,7 @@ Keep URLs empty to use the bundled fallback data. Add public CORS-enabled endpoi
   window.BENGALURU_TRANSIT_API_CONFIG = {
     timeoutMs: 10000,
     refreshMs: 60000,
+    geocodingUrl: "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=in&viewbox=77.45,13.18,77.85,12.75&bounded=1&q={query}%2C%20Bengaluru%2C%20Karnataka%2C%20India",
     metro: {
       stationsUrl: "https://data.opencity.in/dataset/746940cd-cca7-45f5-a3bc-8b0034663605/resource/86e5641c-496c-43fa-8143-bae5f255afc4/download/e13b04fa-bcd8-4fb9-930b-d67ed31bc782.kml",
       scheduleUrl: "https://example.com/metro/schedules",
@@ -28,6 +29,18 @@ Keep URLs empty to use the bundled fallback data. Add public CORS-enabled endpoi
 ## Accepted JSON shapes
 
 The loader accepts plain arrays, CKAN datastore responses, objects with `records`, `results`, `data`, `items`, `result.records`, GeoJSON `features`, and KML placemarks.
+
+The `geocodingUrl` is used when a metro search box contains a place, landmark, or address instead of an exact station name. The app replaces `{query}`, reads latitude/longitude from the first returned map results, then selects the nearest known metro station.
+
+Geocoding records should include:
+
+```json
+{
+  "display_name": "Forum Mall Koramangala, Bengaluru, Karnataka, India",
+  "lat": "12.9349503",
+  "lon": "77.6121482"
+}
+```
 
 Metro station records should include:
 

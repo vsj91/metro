@@ -27,6 +27,7 @@
   const DEFAULT_TRANSIT_API_CONFIG = {
     timeoutMs: 10000,
     refreshMs: 60000,
+    geocodingUrl: '',
     metro: {
       stationsUrl: '',
       scheduleUrl: '',
@@ -1482,6 +1483,96 @@
     return STATION_ALIASES[trimmed] || trimmed;
   }
 
+  function formatDistance(distanceKm) {
+    if (distanceKm < 1) return `${Math.round(distanceKm * 1000)}m`;
+    return `${distanceKm.toFixed(1)}km`;
+  }
+
+  function getMetroPlaceStatusElement(inputId) {
+    return document.getElementById(inputId === 'from-input' ? 'gps-status' : 'to-place-status');
+  }
+
+  function normalizePlaceCandidate(record) {
+    if (!record || typeof record !== 'object') return null;
+    const coords = coordinatesFrom(record) || {
+      lat: parseFloat(record.lat || record.latitude),
+      lng: parseFloat(record.lon || record.lng || record.longitude)
+    };
+    if (!Number.isFinite(coords.lat) || !Number.isFinite(coords.lng)) return null;
+    const name = String(record.name || record.display_name || record.label || 'Map result').split(',')[0].trim();
+    return {
+      lat: coords.lat,
+      lng: coords.lng,
+      name,
+      label: String(record.display_name || record.name || record.label || 'map result')
+    };
+  }
+
+  async function fetchPlaceCandidates(query) {
+    if (!hasApiUrl(TRANSIT_API_CONFIG.geocodingUrl) || query.trim().length < 3) return [];
+    const payload = await fetchTransitJson(TRANSIT_API_CONFIG.geocodingUrl, { query }).catch(() => null);
+    return unwrapRecords(payload).map(normalizePlaceCandidate).filter(Boolean);
+  }
+
+  function nearestStationForPlaceCandidate(candidate) {
+    if (!candidate) return null;
+    const station = findNearestPoint(candidate.lat, candidate.lng, STATIONS);
+    return station ? { ...station, place: candidate } : null;
+  }
+
+  function applyNearestStationFromPlace(inputId, query, nearest) {
+    const input = document.getElementById(inputId);
+    const status = getMetroPlaceStatusElement(inputId);
+    const cleanedQuery = query.trim();
+
+    if (!input || !nearest) return false;
+
+    input.value = nearest.name;
+    if (inputId === 'from-input') {
+      setFromStationSource('manual');
+      renderUnselectedDualDirections(nearest.name);
+    }
+
+    currentNearestStation = nearest.name;
+    requestLeafletAutoFit(true);
+    updateRouteFromInputs(false);
+    renderMetroMap();
+
+    if (status) {
+      status.innerHTML = `Map search matched <strong>${cleanedQuery}</strong> to nearest metro station <strong>${nearest.name}</strong> (${formatDistance(nearest.distanceKm)} away).`;
+    }
+
+    return true;
+  }
+
+  async function resolvePlaceToNearestStation(inputId, query, options = {}) {
+    const input = document.getElementById(inputId);
+    const status = getMetroPlaceStatusElement(inputId);
+    const cleanedQuery = query.trim();
+    const normalizedInput = normalizeStationName(cleanedQuery);
+
+    if (!input || !cleanedQuery || STATIONS[normalizedInput]) return false;
+    if (!hasApiUrl(TRANSIT_API_CONFIG.geocodingUrl)) {
+      if (!options.silent && status) status.innerText = 'Map search is not configured. Choose a station from the dropdown.';
+      return false;
+    }
+
+    if (status) status.innerText = `Searching map for "${cleanedQuery}"...`;
+
+    const candidates = await fetchPlaceCandidates(cleanedQuery);
+    const nearest = candidates
+      .map(nearestStationForPlaceCandidate)
+      .filter(Boolean)
+      .sort((a, b) => a.distanceKm - b.distanceKm)[0];
+
+    if (!nearest) {
+      if (status) status.innerText = `No Bengaluru map match found for "${cleanedQuery}". Try a more specific place name.`;
+      return false;
+    }
+
+    return applyNearestStationFromPlace(inputId, cleanedQuery, nearest);
+  }
+
   function setFromStationSource(source) {
     fromStationSource = source;
     const fromInput = document.getElementById('from-input');
@@ -1492,9 +1583,9 @@
     document.getElementById('from-source-label').innerText = isLive ? 'Live GPS from station' : 'Manual from station';
     document.getElementById('from-source-helper').innerText = isLive
       ? 'Turn off to search and choose a boarding station manually.'
-      : 'Type to filter stations. Live GPS will not replace this field.';
+      : 'Type a station, area, landmark, or address. Map search picks the nearest station.';
     fromInput.readOnly = isLive;
-    fromInput.placeholder = isLive ? 'Detecting nearest station via GPS...' : 'Search boarding station...';
+    fromInput.placeholder = isLive ? 'Detecting nearest station via GPS...' : 'Search station or place, e.g. Forum Mall...';
     fromClear.style.display = (!isLive && fromInput.value.trim()) ? 'flex' : 'none';
   }
 
@@ -1531,6 +1622,8 @@
     const input = document.getElementById(inputId);
     const results = document.getElementById(resultsId);
     const clearBtn = document.getElementById(inputId === 'from-input' ? 'from-clear' : 'to-clear');
+    let placeSearchTimer = null;
+    let placeSearchRequest = 0;
 
     function closeMobileKeyboard() {
       input.blur();
@@ -1549,7 +1642,7 @@
       const query = filterText.toLowerCase().trim();
       const matches = stationNames.filter(name => name.toLowerCase().includes(query));
 
-      if (matches.length === 0) {
+      if (matches.length === 0 && query.length < 3) {
         results.style.display = 'none';
         return;
       }
@@ -1582,7 +1675,86 @@
         results.appendChild(item);
       });
 
+      if (query.length >= 3 && hasApiUrl(TRANSIT_API_CONFIG.geocodingUrl)) {
+        const loadingItem = document.createElement('div');
+        loadingItem.className = 'autocomplete-item place-search-item';
+        loadingItem.innerHTML = `
+          <span>Searching map for "${filterText.trim()}"...</span>
+          <span class="line-badge-sm Interchange">Map</span>
+        `;
+        results.appendChild(loadingItem);
+        schedulePlaceSearch(filterText);
+      } else if (query.length >= 3 && !STATIONS[normalizeStationName(filterText)]) {
+        const searchItem = document.createElement('div');
+        searchItem.className = 'autocomplete-item';
+        searchItem.innerHTML = `
+          <span>Search map for "${filterText.trim()}"</span>
+          <span class="line-badge-sm Interchange">Nearest</span>
+        `;
+        searchItem.addEventListener('mousedown', async (e) => {
+          e.preventDefault();
+          results.style.display = 'none';
+          updateClearButton();
+          await resolvePlaceToNearestStation(inputId, input.value);
+          closeMobileKeyboard();
+        });
+        results.appendChild(searchItem);
+      }
+
       results.style.display = 'block';
+    }
+
+    function clearPlaceSearchItems() {
+      results.querySelectorAll('.place-search-item').forEach(item => item.remove());
+    }
+
+    function schedulePlaceSearch(filterText) {
+      window.clearTimeout(placeSearchTimer);
+      const requestId = ++placeSearchRequest;
+      placeSearchTimer = window.setTimeout(async () => {
+        const query = filterText.trim();
+        if (query.length < 3 || input.value.trim() !== query) return;
+
+        const candidates = await fetchPlaceCandidates(query);
+        if (requestId !== placeSearchRequest || input.value.trim() !== query) return;
+
+        clearPlaceSearchItems();
+        const nearestMatches = candidates
+          .map(nearestStationForPlaceCandidate)
+          .filter(Boolean)
+          .slice(0, 4);
+
+        if (!nearestMatches.length) {
+          const emptyItem = document.createElement('div');
+          emptyItem.className = 'autocomplete-item place-search-item';
+          emptyItem.innerHTML = `
+            <span>No map result found for "${query}"</span>
+            <span class="line-badge-sm Interchange">Map</span>
+          `;
+          results.appendChild(emptyItem);
+          results.style.display = 'block';
+          return;
+        }
+
+        nearestMatches.forEach(nearest => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item place-search-item';
+          item.innerHTML = `
+            <span>${escapeHtml(nearest.place.name)}</span>
+            <span class="line-badge-sm Interchange">${escapeHtml(nearest.name)}</span>
+          `;
+          item.title = `Auto select ${nearest.name} (${formatDistance(nearest.distanceKm)} away)`;
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            results.style.display = 'none';
+            updateClearButton();
+            applyNearestStationFromPlace(inputId, nearest.place.name, nearest);
+            closeMobileKeyboard();
+          });
+          results.appendChild(item);
+        });
+        results.style.display = 'block';
+      }, 350);
     }
 
     input.addEventListener('focus', () => {
@@ -1612,6 +1784,19 @@
         if (STATIONS[normalizedInput]) requestLeafletAutoFit(true);
         updateRouteFromInputs(false);
       }
+    });
+    input.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter' || input.disabled || input.readOnly) return;
+      const normalizedInput = normalizeStationName(input.value);
+      if (STATIONS[normalizedInput]) return;
+      e.preventDefault();
+      results.style.display = 'none';
+      await resolvePlaceToNearestStation(inputId, input.value);
+      closeMobileKeyboard();
+    });
+    input.addEventListener('change', () => {
+      const normalizedInput = normalizeStationName(input.value);
+      if (!STATIONS[normalizedInput]) resolvePlaceToNearestStation(inputId, input.value, { silent: true });
     });
     input.addEventListener('blur', () => { setTimeout(() => { results.style.display = 'none'; }, 150); });
     updateClearButton();
