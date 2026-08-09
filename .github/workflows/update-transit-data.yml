@@ -1,0 +1,33 @@
+name: Update transit data cache
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 22 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-transit-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download OpenCity transit datasets
+        run: |
+          set -euo pipefail
+          mkdir -p data
+          curl --fail --location --max-time 60 \
+            "https://data.opencity.in/dataset/746940cd-cca7-45f5-a3bc-8b0034663605/resource/86e5641c-496c-43fa-8143-bae5f255afc4/download/e13b04fa-bcd8-4fb9-930b-d67ed31bc782.kml" \
+            --output data/metro-stations.kml
+          curl --fail --location --max-time 60 \
+            "https://data.opencity.in/api/3/action/datastore_search?resource_id=cce1032b-875e-4722-9cdc-f8fe3601c82b&limit=5000" \
+            --output data/bmtc-stops.json
+
+      - name: Commit updated data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update transit data cache
+          file_pattern: data/metro-stations.kml data/bmtc-stops.json
