@@ -48,7 +48,7 @@
 				<value>ವೈಟ್‌ಫೀಲ್ಡ್ (ಕಾಡುಗೋಡಿ)</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>Whitefield</value>
@@ -96,7 +96,7 @@
 				<value>ಹೋಪ್ ಫಾರ್ಮ್ ಚನ್ನಸಂದ್ರ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>Channasandra</value>
@@ -144,7 +144,7 @@
 				<value>ಕಾಡುಗೋಡಿ ಟ್ರೀ ಪಾರ್ಕ್</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>Kadugodi</value>
@@ -192,7 +192,7 @@
 				<value>ಪಟ್ಟಂದೂರು ಅಗ್ರಹಾರ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -237,7 +237,7 @@
 				<value>ಶ್ರೀ ಸತ್ಯ ಸಾಯಿ ಆಸ್ಪತ್ರೆ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>Sri Satya Sai Hospital</value>
@@ -285,7 +285,7 @@
 				<value>ನಲ್ಲೂರಹಳ್ಳಿ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -330,7 +330,7 @@
 				<value>ಕುಂದಲಹಳ್ಳಿ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -375,7 +375,7 @@
 				<value>ಸೀತಾರಾಮ ಪಾಳ್ಯ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -420,7 +420,7 @@
 				<value>ಹೂಡಿ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>Hoodi Junction</value>
@@ -471,7 +471,7 @@
 				<value>ಗರುಡಾಚಾರ್ ಪಾಳ್ಯ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -519,7 +519,7 @@
 				<value>ಸಿಂಗಯ್ಯನಪಾಳ್ಯ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>Mahadevapura</value>
@@ -567,7 +567,7 @@
 				<value>ಕೃಷ್ಣರಾಜಪುರ (ಕೆ.ಆರ್.ಪುರ)</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="old_name">
 				<value>K R Pura</value>
@@ -621,7 +621,7 @@
 				<value>നാഗസന്ദ്ര</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -678,7 +678,7 @@
 				<value>ദാസറഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -735,7 +735,7 @@
 				<value>ജാലഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -801,7 +801,7 @@
 				<value>ശ്രീരാംപുര</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -861,7 +861,7 @@
 				<value>ബൈയപ്പനഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -927,7 +927,7 @@
 				<value>സ്വാമി വിവേകാനന്ദ റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -990,7 +990,7 @@
 				<value>ഇന്ദിരാനഗർ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1053,7 +1053,7 @@
 				<value>ഹലസുരു</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1116,7 +1116,7 @@
 				<value>ട്രിനിറ്റി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1182,7 +1182,7 @@
 				<value>മഹാത്മാഗാന്ധി റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1254,7 +1254,7 @@
 				<value>കബ്ബൺ പാർക്ക്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1311,7 +1311,7 @@
 				<value>ഡോ.ബി.ആർ. അംബേദ്കർ സ്റ്റേഷൻ, വിധാന സൗധ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1371,7 +1371,7 @@
 				<value>സർ എം വിശ്വേശ്വരയ്യ - സെൻട്രൽ കോളേജ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1491,7 +1491,7 @@
 				<value>ക്രാന്തിവീര സങ്കൊല്ലി രായണ്ണ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1545,7 +1545,7 @@
 				<value>മാഗഡി റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1599,7 +1599,7 @@
 				<value>ശ്രീ ബാലഗംഗാധരനാഥ സ്വാമി, ഹൊസഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1653,7 +1653,7 @@
 				<value>വിജയനഗര</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1707,7 +1707,7 @@
 				<value>അത്തിഗുപ്പെ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1761,7 +1761,7 @@
 				<value>ദീപാഞ്ജലി നഗർ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1815,7 +1815,7 @@
 				<value>മൈസൂർ റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1869,7 +1869,7 @@
 				<value>മന്ത്രി സ്ക്വയർ സമ്പിഗെ റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1926,7 +1926,7 @@
 				<value>മഹാകവി കുവെമ്പു റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -1980,7 +1980,7 @@
 				<value>രാജാജിനഗർ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2034,7 +2034,7 @@
 				<value>മഹാലക്ഷ്മി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2088,7 +2088,7 @@
 				<value>സാൻഡൽ സോപ്പ് ഫാക്ടറി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2142,7 +2142,7 @@
 				<value>ഗോരഗുണ്ടെപാൾയ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2196,7 +2196,7 @@
 				<value>പീണ്യ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2250,7 +2250,7 @@
 				<value>പീണ്യ ഇൻഡസ്ട്രി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2310,7 +2310,7 @@
 				<value>യലച്ചേനഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2373,7 +2373,7 @@
 				<value>ജെ പി നഗർ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2436,7 +2436,7 @@
 				<value>ബനശങ്കരി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2499,7 +2499,7 @@
 				<value>രാഷ്ട്രീയ വിദ്യാലയ റോഡ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2562,7 +2562,7 @@
 				<value>ജയനഗർ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2625,7 +2625,7 @@
 				<value>സൗത്ത് എൻഡ് സർക്കിൾ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2688,7 +2688,7 @@
 				<value>ലാൽബാഗ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2751,7 +2751,7 @@
 				<value>നാഷണൽ കോളേജ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2811,7 +2811,7 @@
 				<value>കൃഷ്ണ രാജേന്ദ്ര മാർക്കറ്റ്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2871,7 +2871,7 @@
 				<value>ചിക്കപ്പേട്ട</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2928,7 +2928,7 @@
 				<value>ജ്ഞാന ഭാരതി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -2982,7 +2982,7 @@
 				<value>നായണ്ടഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3027,7 +3027,7 @@
 				<value>കെങ്കേരി ബസ് ടെർമിനൽ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3072,7 +3072,7 @@
 				<value>കെങ്കേരി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3117,7 +3117,7 @@
 				<value>രാജരാജേശ്വരി നഗർ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3162,7 +3162,7 @@
 				<value>പട്ടനഗരെ</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3207,7 +3207,7 @@
 				<value>സിൽക്ക് ഇൻസ്റ്റിറ്റ്യൂട്ട്</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3258,7 +3258,7 @@
 				<value>തലഘട്ടപുര</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3309,7 +3309,7 @@
 				<value>വാജറഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3360,7 +3360,7 @@
 				<value>ദൊഡ്ഡകല്ലസന്ദ്ര</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>
@@ -3417,7 +3417,7 @@
 				<value>യലച്ചേനഹള്ളി</value>
 			</Data>
 			<Data name="network">
-				<value>Metro & BMTC</value>
+				<value>Namma Metro</value>
 			</Data>
 			<Data name="operator">
 				<value>BMRCL</value>

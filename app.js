@@ -1075,7 +1075,7 @@
       `;
     })() : `
       <div class="html-map-route-title">
-        <strong>Metro & BMTC network</strong>
+        <strong>Namma Metro network</strong>
         <span>Spatial schematic with live nearest station marker</span>
       </div>
     `;
@@ -1364,7 +1364,7 @@
     svg.appendChild(bg);
 
     const title = makeSvgEl('text', { x: 68, y: 60, class: 'map-label', 'font-size': 22 });
-    title.textContent = 'Metro & BMTC Live Route Map';
+    title.textContent = 'Namma Metro Live Route Map';
     svg.appendChild(title);
 
     const north = makeSvgEl('text', { x: 1010, y: 54, class: 'map-label-muted', 'font-size': 13 });
