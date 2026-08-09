@@ -242,6 +242,26 @@
       backdrop-filter: blur(18px);
     }
 
+    .api-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--warning-border);
+      background: var(--warning-soft);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 760;
+    }
+
+    .api-status.api-connected {
+      border-color: var(--accent-border);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
     .card {
       background: var(--card-bg);
       border-radius: 22px;
@@ -1941,6 +1961,7 @@
     <div class="clock-banner">
       Bengaluru time: <span id="live-clock">--:--:-- --</span>
     </div>
+    <div class="api-status" id="transit-api-status">Metro fallback data • BMTC fallback data</div>
   </header>
 
   <div class="transport-switcher" aria-label="Transport mode">
@@ -2056,7 +2077,7 @@
   <section id="bus-panel" class="card bus-panel" aria-label="BMTC bus route finder">
     <h2 style="font-size:1.12rem;margin-bottom:6px;">BMTC Bus Route Finder</h2>
     <p class="bus-helper">
-      Search common Bengaluru bus stops and corridors to get BMTC route suggestions, transfer points, estimated fare, and travel time. This is a planning estimate, not live official BMTC data.
+      Search Bengaluru bus stops and corridors to get BMTC route suggestions, transfer points, estimated fare, and travel time. When configured API endpoints are available, routes, stops, and live vehicle markers are loaded from the API.
     </p>
 
     <div class="form-group">
@@ -2166,6 +2187,25 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  window.BENGALURU_TRANSIT_API_CONFIG = {
+    timeoutMs: 10000,
+    refreshMs: 60000,
+    metro: {
+      stationsUrl: "https://data.opencity.in/dataset/746940cd-cca7-45f5-a3bc-8b0034663605/resource/86e5641c-496c-43fa-8143-bae5f255afc4/download/e13b04fa-bcd8-4fb9-930b-d67ed31bc782.kml",
+      scheduleUrl: "",
+      faresUrl: "",
+      linesUrl: "",
+      arrivalsUrl: ""
+    },
+    bus: {
+      routesUrl: "",
+      stopsUrl: "https://data.opencity.in/api/3/action/datastore_search?resource_id=cce1032b-875e-4722-9cdc-f8fe3601c82b&limit=5000",
+      arrivalsUrl: "",
+      vehiclesUrl: ""
+    }
+  };
+</script>
 <script src="app.js?v=20260802-merged-metro"></script>
 </body>
 </html>

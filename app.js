@@ -21,6 +21,39 @@
   let selectedBusRouteIndex = -1;
   let busLeafletMap = null;
   let busLeafletLayerGroup = null;
+  let transitApiLoadStatus = { metro: 'fallback', bus: 'fallback' };
+  let busVehiclePositions = [];
+
+  const DEFAULT_TRANSIT_API_CONFIG = {
+    timeoutMs: 10000,
+    refreshMs: 60000,
+    metro: {
+      stationsUrl: '',
+      scheduleUrl: '',
+      faresUrl: '',
+      linesUrl: '',
+      arrivalsUrl: ''
+    },
+    bus: {
+      routesUrl: '',
+      stopsUrl: '',
+      arrivalsUrl: '',
+      vehiclesUrl: ''
+    }
+  };
+
+  const TRANSIT_API_CONFIG = {
+    ...DEFAULT_TRANSIT_API_CONFIG,
+    ...(window.BENGALURU_TRANSIT_API_CONFIG || {}),
+    metro: {
+      ...DEFAULT_TRANSIT_API_CONFIG.metro,
+      ...((window.BENGALURU_TRANSIT_API_CONFIG || {}).metro || {})
+    },
+    bus: {
+      ...DEFAULT_TRANSIT_API_CONFIG.bus,
+      ...((window.BENGALURU_TRANSIT_API_CONFIG || {}).bus || {})
+    }
+  };
 
   const STATIONS = {
     // PURPLE LINE
@@ -217,7 +250,7 @@
     "Delta electronics Bommasandra": "Delta electronics Bommasandra"
   };
 
-  const stationNames = Object.keys(STATIONS).sort();
+  let stationNames = Object.keys(STATIONS).sort();
 
   const LINE_COLORS = {
     "Purple Line": "#a855f7",
@@ -226,7 +259,7 @@
     "Interchange": "#f59e0b"
   };
 
-  const BMTC_ROUTES = [
+  let BMTC_ROUTES = [
     { number: "335E", name: "Majestic - Whitefield", frequency: "10-15 min", stops: ["Kempegowda Bus Station (Majestic)", "Corporation", "MG Road", "Indiranagar", "Tin Factory", "KR Puram", "Mahadevapura", "Marathahalli", "Kundalahalli Gate", "Whitefield"] },
     { number: "500D", name: "Hebbal - Silk Board - Electronic City", frequency: "12-18 min", stops: ["Hebbal", "Manyata Tech Park", "Nagavara", "HRBR Layout", "Indiranagar", "Domlur", "Koramangala", "Madiwala", "Central Silk Board", "Electronic City"] },
     { number: "356C", name: "Majestic - Electronic City", frequency: "15-20 min", stops: ["Kempegowda Bus Station (Majestic)", "Town Hall", "Lalbagh", "Jayanagar", "BTM Layout", "Central Silk Board", "Bommanahalli", "Hongasandra", "Kudlu Gate", "Singasandra", "Hosa Road", "Beratena Agrahara", "Electronic City"] },
@@ -263,7 +296,7 @@
     "Shivaji Nagar": "Shivajinagar"
   };
 
-  const BMTC_STOPS = [...new Set(BMTC_ROUTES.flatMap(route => route.stops))].sort();
+  let BMTC_STOPS = [...new Set(BMTC_ROUTES.flatMap(route => route.stops))].sort();
 
   const BMTC_STOP_COORDS = {
     "Arekere": { lat: 12.8857, lng: 77.5984 },
@@ -315,6 +348,260 @@
     "Yelahanka": { lat: 13.1007, lng: 77.5963 },
     "Yeshwanthpur": { lat: 13.0285, lng: 77.5402 }
   };
+
+  function hasApiUrl(url) {
+    return typeof url === 'string' && url.trim().length > 0;
+  }
+
+  function apiUrlWithParams(url, params = {}) {
+    let nextUrl = url;
+    Object.entries(params).forEach(([key, value]) => {
+      nextUrl = nextUrl.replaceAll(`{${key}}`, encodeURIComponent(value ?? ''));
+    });
+
+    if (nextUrl.includes('{')) return nextUrl;
+
+    const parsed = new URL(nextUrl, window.location.href);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '' && !url.includes(`{${key}}`)) {
+        parsed.searchParams.set(key, value);
+      }
+    });
+    return parsed.toString();
+  }
+
+  async function fetchTransitJson(url, params = {}) {
+    if (!hasApiUrl(url)) return null;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), TRANSIT_API_CONFIG.timeoutMs);
+
+    try {
+      const response = await fetch(apiUrlWithParams(url, params), {
+        headers: { Accept: 'application/json, application/vnd.google-earth.kml+xml, text/xml, */*' },
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const contentType = response.headers.get('content-type') || '';
+      const text = await response.text();
+      if (contentType.includes('json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+        return JSON.parse(text);
+      }
+      if (text.includes('<kml') || text.includes('<Placemark')) {
+        return { records: parseKmlRecords(text) };
+      }
+      return { raw: text };
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
+  function parseKmlRecords(kmlText) {
+    if (typeof DOMParser === 'undefined') return [];
+    const doc = new DOMParser().parseFromString(kmlText, 'application/xml');
+    return [...doc.querySelectorAll('Placemark')].map((placemark) => {
+      const record = {
+        name: placemark.querySelector('name')?.textContent?.trim(),
+        coordinates: placemark.querySelector('Point coordinates, coordinates')?.textContent?.trim()
+      };
+      placemark.querySelectorAll('ExtendedData Data').forEach((node) => {
+        const key = node.getAttribute('name');
+        const value = node.querySelector('value')?.textContent?.trim();
+        if (key && value) record[key] = value;
+      });
+      if (record.coordinates) {
+        const [lng, lat] = record.coordinates.split(',').map(Number);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          record.latitude = lat;
+          record.longitude = lng;
+        }
+      }
+      return record;
+    });
+  }
+
+  function unwrapRecords(payload) {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
+    if (payload.type === 'FeatureCollection' && Array.isArray(payload.features)) return payload.features;
+    if (Array.isArray(payload.features)) return payload.features;
+    if (Array.isArray(payload.records)) return payload.records;
+    if (Array.isArray(payload.results)) return payload.results;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.items)) return payload.items;
+    if (payload.result) return unwrapRecords(payload.result.records || payload.result.results || payload.result.data || payload.result);
+    return [];
+  }
+
+  function valueFrom(record, keys) {
+    const source = record?.properties || record?.attributes || record || {};
+    for (const key of keys) {
+      if (source[key] !== undefined && source[key] !== null && source[key] !== '') return source[key];
+    }
+    return undefined;
+  }
+
+  function numberFrom(record, keys) {
+    const value = valueFrom(record, keys);
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value.trim());
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return undefined;
+  }
+
+  function coordinatesFrom(record) {
+    const geometryCoords = record?.geometry?.coordinates;
+    if (Array.isArray(geometryCoords) && geometryCoords.length >= 2) {
+      return { lat: Number(geometryCoords[1]), lng: Number(geometryCoords[0]) };
+    }
+    const lat = numberFrom(record, ['lat', 'Lat', 'LAT', 'latitude', 'Latitude', 'Y', 'station_latitude', 'stop_lat', 'y']);
+    const lng = numberFrom(record, ['lng', 'Lng', 'LNG', 'lon', 'long', 'longitude', 'Longitude', 'X', 'station_longitude', 'stop_lon', 'x']);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  }
+
+  function normalizeMetroStation(record, index) {
+    const name = valueFrom(record, ['name', 'NAME', 'station', 'station_name', 'stationName', 'stop_name', 'Stop Name']);
+    const coords = coordinatesFrom(record);
+    if (!name || !coords) return null;
+    return [
+      String(name).trim(),
+      {
+        line: String(valueFrom(record, ['line', 'line_name', 'corridor', 'route_name', 'Line']) || 'Metro Line').trim(),
+        order: Number(valueFrom(record, ['order', 'sequence', 'stop_sequence', 'station_order']) || index + 1),
+        lat: coords.lat,
+        lng: coords.lng
+      }
+    ];
+  }
+
+  function normalizeBusStopName(stop) {
+    if (typeof stop === 'string') return stop.trim();
+    return String(valueFrom(stop, ['name', 'NAME', 'stop_name', 'stop', 'station', 'Stop Name']) || '').trim();
+  }
+
+  function normalizeBusRoute(record) {
+    const source = record?.properties || record?.attributes || record || {};
+    const number = valueFrom(source, ['number', 'route_number', 'routeNo', 'route_no', 'route_short_name', 'route_id', 'id']);
+    const rawStops = source.stops || source.stop_names || source.stopNames || source.path || source.route_stops;
+    let stops = [];
+
+    if (Array.isArray(rawStops)) {
+      stops = rawStops.map(normalizeBusStopName).filter(Boolean);
+    } else if (typeof rawStops === 'string') {
+      stops = rawStops.split(/\s*(?:,|->|→|\|)\s*/).map(stop => stop.trim()).filter(Boolean);
+    }
+
+    if (!number || stops.length < 2) return null;
+    return {
+      number: String(number).trim(),
+      name: String(valueFrom(source, ['name', 'route_name', 'route_long_name']) || `${stops[0]} - ${stops[stops.length - 1]}`).trim(),
+      frequency: String(valueFrom(source, ['frequency', 'headway', 'interval']) || 'API'),
+      stops
+    };
+  }
+
+  function normalizeBusStop(record) {
+    const name = normalizeBusStopName(record);
+    const coords = coordinatesFrom(record);
+    if (!name) return null;
+    return { name, coords };
+  }
+
+  function normalizeVehiclePosition(record) {
+    const coords = coordinatesFrom(record);
+    if (!coords) return null;
+    return {
+      routeNumber: String(valueFrom(record, ['route_number', 'routeNo', 'route_id', 'route_short_name', 'number']) || '').trim(),
+      vehicleId: String(valueFrom(record, ['vehicle_id', 'bus_number', 'label', 'id']) || 'Bus').trim(),
+      lat: coords.lat,
+      lng: coords.lng
+    };
+  }
+
+  function rebuildDerivedTransitData() {
+    stationNames = Object.keys(STATIONS).sort();
+    BMTC_STOPS = [...new Set([...BMTC_ROUTES.flatMap(route => route.stops), ...Object.keys(BMTC_STOP_COORDS)])].sort();
+  }
+
+  function updateTransitApiStatus() {
+    const status = document.getElementById('transit-api-status');
+    if (!status) return;
+
+    const metroLabel = transitApiLoadStatus.metro === 'api' ? 'Metro API connected' : 'Metro fallback data';
+    const busLabel = transitApiLoadStatus.bus === 'api' ? 'BMTC API connected' : 'BMTC fallback data';
+    status.textContent = `${metroLabel} • ${busLabel}`;
+    status.classList.toggle('api-connected', transitApiLoadStatus.metro === 'api' || transitApiLoadStatus.bus === 'api');
+  }
+
+  async function loadMetroApiData() {
+    let loaded = false;
+
+    const stationPayload = await fetchTransitJson(TRANSIT_API_CONFIG.metro.stationsUrl).catch(() => null);
+    const apiStations = unwrapRecords(stationPayload)
+      .map(normalizeMetroStation)
+      .filter(Boolean);
+    if (apiStations.length) {
+      apiStations.forEach(([name, station]) => {
+        STATIONS[name] = {
+          ...(STATIONS[name] || {}),
+          ...station,
+          line: station.line === 'Metro Line' && STATIONS[name]?.line ? STATIONS[name].line : station.line,
+          order: STATIONS[name]?.order || station.order
+        };
+      });
+      loaded = true;
+    }
+
+    const schedulePayload = await fetchTransitJson(TRANSIT_API_CONFIG.metro.scheduleUrl).catch(() => null);
+    if (schedulePayload && !Array.isArray(schedulePayload) && typeof schedulePayload === 'object') {
+      Object.assign(BMRC_TIMETABLES, schedulePayload.timetables || schedulePayload);
+      loaded = true;
+    }
+
+    transitApiLoadStatus.metro = loaded ? 'api' : 'fallback';
+  }
+
+  async function loadBusApiData() {
+    let loaded = false;
+
+    const routePayload = await fetchTransitJson(TRANSIT_API_CONFIG.bus.routesUrl).catch(() => null);
+    const apiRoutes = unwrapRecords(routePayload)
+      .map(normalizeBusRoute)
+      .filter(Boolean);
+    if (apiRoutes.length) {
+      BMTC_ROUTES = apiRoutes;
+      loaded = true;
+    }
+
+    const stopPayload = await fetchTransitJson(TRANSIT_API_CONFIG.bus.stopsUrl).catch(() => null);
+    const apiStops = unwrapRecords(stopPayload)
+      .map(normalizeBusStop)
+      .filter(Boolean);
+    if (apiStops.length) {
+      apiStops.forEach(stop => {
+        if (stop.coords) BMTC_STOP_COORDS[stop.name] = stop.coords;
+      });
+      loaded = true;
+    }
+
+    transitApiLoadStatus.bus = loaded ? 'api' : 'fallback';
+  }
+
+  async function refreshBusVehiclePositions(option) {
+    if (!hasApiUrl(TRANSIT_API_CONFIG.bus.vehiclesUrl)) return;
+    const route = option?.segments?.[0]?.route?.number || '';
+    const payload = await fetchTransitJson(TRANSIT_API_CONFIG.bus.vehiclesUrl, { route }).catch(() => null);
+    busVehiclePositions = unwrapRecords(payload).map(normalizeVehiclePosition).filter(Boolean);
+  }
+
+  async function loadTransitApiData() {
+    updateTransitApiStatus();
+    await Promise.all([loadMetroApiData(), loadBusApiData()]);
+    rebuildDerivedTransitData();
+    updateTransitApiStatus();
+    renderMetroMap();
+  }
 
   function getMapPoint(stationName) {
     const station = STATIONS[stationName];
@@ -637,17 +924,6 @@
     renderMetroMap();
   }
 
-  function refreshMetroLiveViews() {
-    if (activeTransportMode !== 'metro') return;
-
-    if (currentPanel === 'result') {
-      calculateRoute(true);
-      return;
-    }
-
-    renderMetroMap();
-  }
-
   function updateMapStats() {
     const stopsStat = document.getElementById('map-stops-stat');
     const linesStat = document.getElementById('map-lines-stat');
@@ -903,6 +1179,7 @@
     if (htmlMap) htmlMap.style.display = 'none';
 
     updateMapStats();
+    leafletLayerGroup.clearLayers();
 
     const summary = document.getElementById('map-summary');
     const livePill = document.getElementById('map-live-pill');
@@ -927,7 +1204,6 @@
       return true;
     }
     lastLeafletRenderKey = renderKey;
-    leafletLayerGroup.clearLayers();
 
     if (isRouteMap) {
       for (let i = 0; i < currentRoutePath.length - 1; i++) {
@@ -1416,7 +1692,6 @@
 
         if (nearestMetro) {
           const nearestChanged = nearestMetro.name !== currentNearestStation;
-          let routeUpdatedFromLiveInput = false;
           currentNearestStation = nearestMetro.name;
           const distInMeters = (nearestMetro.distanceKm * 1000).toFixed(0);
 
@@ -1429,13 +1704,12 @@
               const destination = normalizeStationName(document.getElementById('to-input')?.value || '');
               if (!STATIONS[destination]) renderUnselectedDualDirections(nearestMetro.name);
               updateRouteFromInputs(true);
-              routeUpdatedFromLiveInput = true;
             }
             statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
           } else {
             statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
           }
-          if (nearestChanged && !routeUpdatedFromLiveInput) refreshMetroLiveViews();
+          if (nearestChanged) renderMetroMap();
         }
 
         if (nearestBus) {
@@ -1945,7 +2219,6 @@
     document.getElementById('unselected-card').style.display = isBus ? 'none' : (currentPanel === 'unselected' ? 'block' : 'none');
     document.getElementById('result-card').style.display = isBus ? 'none' : (currentPanel === 'result' ? 'block' : 'none');
     document.getElementById('bus-panel').classList.toggle('active', isBus);
-    if (!isBus) refreshMetroLiveViews();
   }
 
   function normalizeBusStop(value) {
@@ -2086,6 +2359,26 @@
         .addTo(busLeafletLayerGroup);
     });
 
+    const routeNumbers = new Set((option?.segments || []).map(segment => segment.route.number));
+    busVehiclePositions
+      .filter(vehicle => !vehicle.routeNumber || routeNumbers.has(vehicle.routeNumber))
+      .forEach(vehicle => {
+        const icon = L.divIcon({
+          className: '',
+          html: '<div class="bus-stop-marker live"></div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+        L.marker([vehicle.lat, vehicle.lng], { icon, title: vehicle.vehicleId, zIndexOffset: 900 })
+          .bindTooltip(`${escapeHtml(vehicle.routeNumber || 'BMTC')} ${escapeHtml(vehicle.vehicleId)}`, {
+            permanent: false,
+            direction: 'top',
+            className: 'live-location-label',
+            opacity: 0.95
+          })
+          .addTo(busLeafletLayerGroup);
+      });
+
     setTimeout(() => {
       busLeafletMap.invalidateSize({ pan: false });
       busLeafletMap.fitBounds(latLngs, {
@@ -2157,6 +2450,9 @@
 
     panel.classList.add('active');
     renderBusMap(option, stops);
+    refreshBusVehiclePositions(option).then(() => {
+      if (selectedBusRouteIndex === index) renderBusMap(option, stops);
+    });
     if (shouldScroll) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -2286,6 +2582,12 @@
   }
 
   window.onload = function() {
+    loadTransitApiData().catch(() => updateTransitApiStatus());
+    if (TRANSIT_API_CONFIG.refreshMs > 0) {
+      window.setInterval(() => {
+        loadTransitApiData().catch(() => updateTransitApiStatus());
+      }, TRANSIT_API_CONFIG.refreshMs);
+    }
     setupBusAutocomplete('bus-from-input', 'bus-from-results');
     setupBusAutocomplete('bus-to-input', 'bus-to-results');
     setBusFromSource('live');
