@@ -166,75 +166,85 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #faefbd;
+      --bg: #dbeaf7;
       --page-bg:
-        radial-gradient(circle at 18% 0%, rgba(255, 247, 198, 0.86), transparent 31%),
-        radial-gradient(circle at 84% 8%, rgba(210, 38, 48, 0.18), transparent 30%),
-        linear-gradient(145deg, #fffbe2 0%, #f8e58d 48%, #efc953 100%);
-      --card-bg: #fff4c9;
-      --surface-bg: #f6e18c;
-      --surface-hover: #fff8d7;
-      --dropdown-bg: #fff7d2;
-      --text: #321915;
-      --text-muted: #73584a;
+        radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.82), transparent 31%),
+        radial-gradient(circle at 84% 8%, rgba(188, 224, 255, 0.78), transparent 28%),
+        linear-gradient(145deg, #f6fbff 0%, #e2f0fb 48%, #d6e8f7 100%);
+      --card-bg: #eef7ff;
+      --surface-bg: #e1eef9;
+      --surface-hover: #f8fcff;
+      --dropdown-bg: #f6fbff;
+      --text: #203040;
+      --text-muted: #617789;
       --purple-line: #8f65c7;
       --green-line: #2a9368;
-      --yellow-line: #f2c230;
-      --border: rgba(126, 52, 34, 0.30);
-      --accent: #c91f2f;
-      --highlight: #f2c230;
-      --warning: #8a2a1f;
-      --footer-muted: #81614d;
+      --yellow-line: #d3a728;
+      --border: rgba(87, 130, 166, 0.32);
+      --accent: #2d87c8;
+      --highlight: #d85f78;
+      --warning: #94721f;
+      --footer-muted: #6f8292;
       --card-shadow:
-        0 20px 34px rgba(126, 70, 26, 0.24),
+        0 20px 34px rgba(83, 124, 158, 0.22),
         0 4px 0 rgba(255, 255, 255, 0.84) inset,
-        0 -5px 12px rgba(126, 52, 34, 0.16) inset;
+        0 -5px 12px rgba(87, 130, 166, 0.15) inset;
       --dropdown-shadow:
-        0 18px 28px rgba(126, 70, 26, 0.23),
+        0 18px 28px rgba(83, 124, 158, 0.23),
         0 2px 0 rgba(255, 255, 255, 0.92) inset;
-      --accent-soft: rgba(201, 31, 47, 0.10);
-      --accent-medium: rgba(201, 31, 47, 0.18);
-      --accent-border: rgba(201, 31, 47, 0.34);
-      --accent-border-strong: rgba(201, 31, 47, 0.48);
-      --highlight-soft: rgba(242, 194, 48, 0.20);
-      --highlight-medium: rgba(242, 194, 48, 0.28);
-      --highlight-border: rgba(151, 82, 8, 0.32);
-      --warning-soft: rgba(138, 42, 31, 0.12);
-      --warning-border: rgba(138, 42, 31, 0.30);
-      --item-border: rgba(133, 86, 38, 0.36);
-      --badge-ring: #fff8d7;
-      --raised-bg: linear-gradient(145deg, #fff9d9 0%, #ecc95b 100%);
-      --pressed-bg: linear-gradient(145deg, #d4a72c 0%, #fff7cc 100%);
+      --accent-soft: rgba(45, 135, 200, 0.10);
+      --accent-medium: rgba(45, 135, 200, 0.18);
+      --accent-border: rgba(45, 135, 200, 0.32);
+      --accent-border-strong: rgba(45, 135, 200, 0.46);
+      --highlight-soft: rgba(216, 95, 120, 0.10);
+      --highlight-medium: rgba(216, 95, 120, 0.15);
+      --highlight-border: rgba(216, 95, 120, 0.32);
+      --warning-soft: rgba(211, 167, 40, 0.17);
+      --warning-border: rgba(149, 112, 27, 0.32);
+      --item-border: rgba(111, 151, 184, 0.40);
+      --badge-ring: #ffffff;
+      --raised-bg: linear-gradient(145deg, #ffffff 0%, #dcecf8 100%);
+      --pressed-bg: linear-gradient(145deg, #cfe1f0 0%, #fbfdff 100%);
+      --vehicle-start: #eef8ff;
+      --vehicle-mid: #9ed8ff;
+      --vehicle-end: #4aa4de;
+      --vehicle-window: rgba(25,72,106,0.72);
+      --orb-core: #fff8c8;
+      --orb-mid: #ffe88f;
+      --orb-edge: rgba(255, 244, 184, 0.48);
+      --sun-glow: rgba(255, 212, 74, 0.58);
+      --ribbon-one: rgba(141,204,255,0.20);
+      --ribbon-two: rgba(255,255,255,0.26);
       --inset-shadow:
-        inset 4px 4px 9px rgba(126, 82, 26, 0.22),
+        inset 4px 4px 9px rgba(82, 119, 149, 0.22),
         inset -4px -4px 8px rgba(255, 255, 255, 0.82);
       --raised-shadow:
-        7px 9px 16px rgba(126, 82, 26, 0.22),
+        7px 9px 16px rgba(82, 119, 149, 0.22),
         -5px -5px 12px rgba(255, 255, 255, 0.88);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
         color-scheme: dark;
-      --bg: #5a241c;
+      --bg: #203d55;
       --page-bg:
-          radial-gradient(circle at 18% 0%, rgba(255, 217, 88, 0.48), transparent 32%),
-          radial-gradient(circle at 80% 12%, rgba(255, 103, 83, 0.32), transparent 29%),
-          linear-gradient(145deg, #b94332 0%, #7a3026 52%, #512119 100%);
-        --card-bg: #8d3a2f;
-        --surface-bg: #692a22;
-        --surface-hover: #a94a3c;
-        --dropdown-bg: #934034;
-        --text: #fff6d4;
-        --text-muted: #f1d9aa;
+          radial-gradient(circle at 18% 0%, rgba(155, 213, 255, 0.42), transparent 32%),
+          radial-gradient(circle at 80% 12%, rgba(221, 240, 255, 0.26), transparent 29%),
+          linear-gradient(145deg, #3f6f92 0%, #284b68 52%, #1d3348 100%);
+        --card-bg: #345a75;
+        --surface-bg: #284963;
+        --surface-hover: #426d8c;
+        --dropdown-bg: #385e79;
+        --text: #f3f8fc;
+        --text-muted: #b6c7d5;
         --purple-line: #b995e2;
         --green-line: #70d2a1;
-        --yellow-line: #ffd44a;
-        --border: rgba(255, 227, 126, 0.22);
-        --accent: #ffd44a;
-        --highlight: #ff5a5f;
-        --warning: #ffe082;
-        --footer-muted: #dbc394;
+        --yellow-line: #f2cc56;
+        --border: rgba(213, 232, 247, 0.20);
+        --accent: #8dccff;
+        --highlight: #ff86a0;
+        --warning: #efc757;
+        --footer-muted: #a5b8c8;
         --card-shadow:
           0 22px 38px rgba(0, 0, 0, 0.34),
           0 3px 0 rgba(255, 255, 255, 0.09) inset,
@@ -242,19 +252,29 @@
         --dropdown-shadow:
           0 18px 32px rgba(0, 0, 0, 0.42),
           0 2px 0 rgba(255, 255, 255, 0.08) inset;
-        --accent-soft: rgba(255, 212, 74, 0.15);
-        --accent-medium: rgba(255, 212, 74, 0.24);
-        --accent-border: rgba(255, 212, 74, 0.40);
-        --accent-border-strong: rgba(255, 212, 74, 0.58);
-        --highlight-soft: rgba(255, 90, 95, 0.14);
-        --highlight-medium: rgba(255, 90, 95, 0.20);
-        --highlight-border: rgba(255, 90, 95, 0.42);
-        --warning-soft: rgba(255, 224, 130, 0.16);
-        --warning-border: rgba(255, 224, 130, 0.36);
-        --item-border: rgba(255, 227, 126, 0.18);
-        --badge-ring: #4e1b17;
-        --raised-bg: linear-gradient(145deg, #b84f40 0%, #722b23 100%);
-        --pressed-bg: linear-gradient(145deg, #5b221c 0%, #b84f40 100%);
+        --accent-soft: rgba(141, 204, 255, 0.13);
+        --accent-medium: rgba(141, 204, 255, 0.21);
+        --accent-border: rgba(141, 204, 255, 0.36);
+        --accent-border-strong: rgba(141, 204, 255, 0.54);
+        --highlight-soft: rgba(255, 134, 160, 0.13);
+        --highlight-medium: rgba(255, 134, 160, 0.19);
+        --highlight-border: rgba(255, 134, 160, 0.40);
+        --warning-soft: rgba(239, 199, 87, 0.15);
+        --warning-border: rgba(239, 199, 87, 0.35);
+        --item-border: rgba(213, 232, 247, 0.17);
+        --badge-ring: #1b2c3d;
+        --raised-bg: linear-gradient(145deg, #527d9d 0%, #274864 100%);
+        --pressed-bg: linear-gradient(145deg, #203b54 0%, #527d9d 100%);
+        --vehicle-start: #dff2ff;
+        --vehicle-mid: #8dccff;
+        --vehicle-end: #447ca8;
+        --vehicle-window: rgba(13, 34, 52, 0.72);
+        --orb-core: #fff9d8;
+        --orb-mid: #ffe082;
+        --orb-edge: rgba(255, 224, 130, 0.18);
+        --sun-glow: rgba(141, 204, 255, 0.42);
+        --ribbon-one: rgba(141,204,255,0.24);
+        --ribbon-two: rgba(255,255,255,0.16);
         --inset-shadow:
           inset 4px 4px 9px rgba(0, 0, 0, 0.34),
           inset -4px -4px 8px rgba(255, 255, 255, 0.08);
@@ -2041,6 +2061,172 @@
       background-attachment: fixed;
     }
 
+    body.sky-sunrise {
+      --page-bg:
+        radial-gradient(circle at 22% 11%, rgba(255, 214, 112, 0.78), transparent 17%),
+        radial-gradient(circle at 78% 12%, rgba(255, 129, 105, 0.34), transparent 25%),
+        linear-gradient(180deg, #ffc977 0%, #ffd88c 31%, #f7d766 63%, #c84a3b 100%);
+      --card-bg: rgba(255, 226, 174, 0.78);
+      --surface-bg: rgba(255, 205, 151, 0.55);
+      --surface-hover: rgba(255, 239, 202, 0.82);
+      --accent: #b9495a;
+      --highlight: #f47a5c;
+      --raised-bg: linear-gradient(145deg, rgba(255, 239, 202, 0.90), rgba(255, 185, 117, 0.72));
+      --pressed-bg: linear-gradient(145deg, rgba(240, 156, 94, 0.76), rgba(255, 241, 207, 0.86));
+      --accent-soft: rgba(185, 73, 90, 0.12);
+      --accent-border: rgba(185, 73, 90, 0.34);
+      --vehicle-start: #fff1d0;
+      --vehicle-mid: #ffbd89;
+      --vehicle-end: #d76661;
+      --vehicle-window: rgba(85, 31, 42, 0.70);
+      --ribbon-one: rgba(255, 214, 112, 0.28);
+      --ribbon-two: rgba(255, 129, 105, 0.20);
+    }
+
+    body.sky-day {
+      --page-bg:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.86), transparent 14%),
+        radial-gradient(circle at 80% 6%, rgba(255, 255, 255, 0.52), transparent 22%),
+        linear-gradient(180deg, #69c3ff 0%, #aee5ff 42%, #dff7ff 72%, #b7e0ff 100%);
+      --card-bg: rgba(238, 247, 255, 0.84);
+      --surface-bg: rgba(225, 238, 249, 0.68);
+      --surface-hover: rgba(248, 252, 255, 0.90);
+      --accent: #2d87c8;
+      --highlight: #5bb6f2;
+      --raised-bg: linear-gradient(145deg, rgba(255,255,255,0.90), rgba(220,236,248,0.78));
+      --pressed-bg: linear-gradient(145deg, rgba(207,225,240,0.78), rgba(251,253,255,0.90));
+      --accent-soft: rgba(45, 135, 200, 0.10);
+      --accent-border: rgba(45, 135, 200, 0.32);
+      --vehicle-start: #eef8ff;
+      --vehicle-mid: #9ed8ff;
+      --vehicle-end: #4aa4de;
+      --vehicle-window: rgba(25,72,106,0.72);
+      --ribbon-one: rgba(141,204,255,0.22);
+      --ribbon-two: rgba(255,255,255,0.30);
+      --orb-core: #ffffff;
+      --orb-mid: #eaf7ff;
+      --orb-edge: rgba(255, 255, 255, 0.34);
+      --sun-glow: rgba(255, 255, 255, 0.42);
+    }
+
+    body.sky-sunset {
+      --page-bg:
+        radial-gradient(circle at 20% 16%, rgba(255, 203, 86, 0.82), transparent 18%),
+        radial-gradient(circle at 78% 15%, rgba(214, 31, 45, 0.34), transparent 28%),
+        linear-gradient(180deg, #ffab5e 0%, #f4745c 38%, #a83d32 72%, #4f1f18 100%);
+      --card-bg: rgba(141, 58, 47, 0.78);
+      --surface-bg: rgba(105, 42, 34, 0.62);
+      --surface-hover: rgba(169, 74, 60, 0.70);
+      --accent: #ffd084;
+      --highlight: #ff7466;
+      --raised-bg: linear-gradient(145deg, rgba(184, 79, 64, 0.86), rgba(114, 43, 35, 0.78));
+      --pressed-bg: linear-gradient(145deg, rgba(91, 34, 28, 0.82), rgba(184, 79, 64, 0.86));
+      --accent-soft: rgba(255, 208, 132, 0.15);
+      --accent-border: rgba(255, 208, 132, 0.36);
+      --vehicle-start: #ffe7cb;
+      --vehicle-mid: #ff8972;
+      --vehicle-end: #a83d32;
+      --vehicle-window: rgba(67,20,16,0.72);
+      --ribbon-one: rgba(255, 208, 132, 0.25);
+      --ribbon-two: rgba(244, 116, 92, 0.24);
+    }
+
+    body.sky-night {
+      --page-bg:
+        radial-gradient(circle at 78% 12%, rgba(255, 238, 170, 0.34), transparent 10%),
+        radial-gradient(circle at 20% 4%, rgba(141, 204, 255, 0.16), transparent 26%),
+        linear-gradient(180deg, #172a46 0%, #1d2943 48%, #111827 100%);
+      --card-bg: rgba(36, 56, 74, 0.84);
+      --surface-bg: rgba(27, 44, 61, 0.72);
+      --surface-hover: rgba(46, 73, 96, 0.80);
+      --accent: #a9d8ff;
+      --highlight: #d5b8ff;
+      --raised-bg: linear-gradient(145deg, rgba(52,83,108,0.88), rgba(24,43,59,0.82));
+      --pressed-bg: linear-gradient(145deg, rgba(18,33,49,0.86), rgba(52,83,108,0.88));
+      --accent-soft: rgba(169, 216, 255, 0.14);
+      --accent-border: rgba(169, 216, 255, 0.38);
+      --vehicle-start: #dcecff;
+      --vehicle-mid: #789ac7;
+      --vehicle-end: #334766;
+      --vehicle-window: rgba(15, 25, 42, 0.78);
+      --ribbon-one: rgba(169, 216, 255, 0.20);
+      --ribbon-two: rgba(213, 184, 255, 0.18);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body.sky-sunrise {
+        --page-bg:
+          radial-gradient(circle at 22% 11%, rgba(255, 180, 101, 0.42), transparent 18%),
+          radial-gradient(circle at 78% 12%, rgba(203, 93, 108, 0.28), transparent 25%),
+          linear-gradient(180deg, #57324a 0%, #6f3d42 48%, #2c1b2e 100%);
+        --card-bg: rgba(69, 45, 67, 0.86);
+        --surface-bg: rgba(50, 35, 58, 0.76);
+        --surface-hover: rgba(86, 56, 78, 0.84);
+        --text: #fff3ea;
+        --text-muted: #dcc5c3;
+        --accent: #ffc0a3;
+        --highlight: #ffa09a;
+        --raised-bg: linear-gradient(145deg, rgba(88, 59, 79, 0.90), rgba(47, 32, 55, 0.84));
+        --pressed-bg: linear-gradient(145deg, rgba(38, 27, 47, 0.88), rgba(88, 59, 79, 0.90));
+        --accent-soft: rgba(255, 192, 163, 0.14);
+        --accent-border: rgba(255, 192, 163, 0.36);
+      }
+
+      body.sky-day {
+        --page-bg:
+          radial-gradient(circle at 18% 12%, rgba(155, 213, 255, 0.36), transparent 15%),
+          radial-gradient(circle at 80% 6%, rgba(221, 240, 255, 0.22), transparent 22%),
+          linear-gradient(180deg, #244963 0%, #1d364d 48%, #142234 100%);
+        --card-bg: rgba(36, 56, 74, 0.86);
+        --surface-bg: rgba(27, 44, 61, 0.76);
+        --surface-hover: rgba(46, 73, 96, 0.84);
+        --text: #f3f8fc;
+        --text-muted: #b6c7d5;
+        --accent: #8dccff;
+        --highlight: #a9d8ff;
+        --raised-bg: linear-gradient(145deg, rgba(52, 83, 108, 0.90), rgba(24, 43, 59, 0.84));
+        --pressed-bg: linear-gradient(145deg, rgba(18, 33, 49, 0.88), rgba(52, 83, 108, 0.90));
+        --accent-soft: rgba(141, 204, 255, 0.13);
+        --accent-border: rgba(141, 204, 255, 0.36);
+      }
+
+      body.sky-sunset {
+        --page-bg:
+          radial-gradient(circle at 20% 16%, rgba(255, 151, 101, 0.36), transparent 18%),
+          radial-gradient(circle at 78% 15%, rgba(169, 61, 88, 0.28), transparent 28%),
+          linear-gradient(180deg, #4f2947 0%, #472139 45%, #171827 100%);
+        --card-bg: rgba(62, 36, 55, 0.86);
+        --surface-bg: rgba(43, 31, 49, 0.76);
+        --surface-hover: rgba(81, 46, 66, 0.84);
+        --text: #fff1ec;
+        --text-muted: #d8c1cc;
+        --accent: #ffbca4;
+        --highlight: #ff8f99;
+        --raised-bg: linear-gradient(145deg, rgba(82, 48, 67, 0.90), rgba(37, 28, 43, 0.84));
+        --pressed-bg: linear-gradient(145deg, rgba(29, 24, 37, 0.88), rgba(82, 48, 67, 0.90));
+        --accent-soft: rgba(255, 188, 164, 0.14);
+        --accent-border: rgba(255, 188, 164, 0.36);
+      }
+
+      body.sky-night {
+        --page-bg:
+          radial-gradient(circle at 78% 12%, rgba(213, 184, 255, 0.24), transparent 10%),
+          radial-gradient(circle at 20% 4%, rgba(169, 216, 255, 0.13), transparent 26%),
+          linear-gradient(180deg, #101d33 0%, #111827 52%, #070b13 100%);
+        --card-bg: rgba(22, 32, 47, 0.88);
+        --surface-bg: rgba(14, 24, 37, 0.80);
+        --surface-hover: rgba(31, 47, 66, 0.86);
+        --text: #f3f8fc;
+        --text-muted: #aebccd;
+        --accent: #a9d8ff;
+        --highlight: #d5b8ff;
+        --raised-bg: linear-gradient(145deg, rgba(34, 51, 72, 0.90), rgba(12, 22, 35, 0.86));
+        --pressed-bg: linear-gradient(145deg, rgba(8, 16, 28, 0.90), rgba(34, 51, 72, 0.90));
+        --accent-soft: rgba(169, 216, 255, 0.14);
+        --accent-border: rgba(169, 216, 255, 0.38);
+      }
+    }
+
     body::before {
       content: '';
       position: fixed;
@@ -2062,6 +2248,78 @@
       overflow: hidden;
       perspective: 900px;
     }
+
+    .sky-orb {
+      position: absolute;
+      top: 8vh;
+      left: 14vw;
+      width: clamp(70px, 13vw, 150px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 30%, var(--orb-core) 0 18%, var(--orb-mid) 42%, var(--orb-edge) 72%, transparent 73%);
+      box-shadow:
+        0 0 42px var(--sun-glow),
+        0 0 110px rgba(255, 110, 76, 0.24);
+      opacity: 0.96;
+      transform: translateZ(-70px);
+    }
+
+    .cloud {
+      position: absolute;
+      width: clamp(120px, 24vw, 270px);
+      height: clamp(42px, 8vw, 82px);
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 22% 52%, rgba(255,255,255,0.96) 0 30%, transparent 31%),
+        radial-gradient(circle at 44% 35%, rgba(255,255,255,0.92) 0 34%, transparent 35%),
+        radial-gradient(circle at 66% 56%, rgba(255,255,255,0.88) 0 30%, transparent 31%),
+        linear-gradient(180deg, rgba(255,255,255,0.90), rgba(255,255,255,0.42));
+      filter: drop-shadow(0 12px 18px rgba(79, 31, 24, 0.14));
+      opacity: 0.74;
+      animation: cloudDrift 28s ease-in-out infinite alternate;
+    }
+
+    .cloud-one {
+      top: 16vh;
+      left: 5vw;
+    }
+
+    .cloud-two {
+      top: 9vh;
+      right: 8vw;
+      width: clamp(100px, 20vw, 220px);
+      opacity: 0.58;
+      animation-duration: 34s;
+      animation-delay: -11s;
+    }
+
+    .stars {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.88) 0 1px, transparent 2px),
+        radial-gradient(circle at 24% 8%, rgba(255,255,255,0.74) 0 1px, transparent 2px),
+        radial-gradient(circle at 38% 20%, rgba(255,255,255,0.80) 0 1px, transparent 2px),
+        radial-gradient(circle at 58% 9%, rgba(255,255,255,0.70) 0 1px, transparent 2px),
+        radial-gradient(circle at 72% 23%, rgba(255,255,255,0.86) 0 1px, transparent 2px),
+        radial-gradient(circle at 88% 13%, rgba(255,255,255,0.76) 0 1px, transparent 2px);
+      animation: starTwinkle 3.8s ease-in-out infinite alternate;
+    }
+
+    body.sky-night .stars { opacity: 0.9; }
+    body.sky-night .sky-orb {
+      left: auto;
+      right: 13vw;
+      background:
+        radial-gradient(circle at 34% 28%, #fff9d8 0 16%, #ffe082 43%, rgba(255, 224, 130, 0.10) 65%, transparent 66%);
+      box-shadow: 0 0 34px rgba(255, 224, 130, 0.42), 0 0 98px rgba(255, 224, 130, 0.18);
+    }
+    body.sky-night .cloud { opacity: 0.18; filter: blur(1px); }
+    body.sky-sunrise .sky-orb,
+    body.sky-sunset .sky-orb { top: 16vh; }
+    body.sky-day .cloud { opacity: 0.82; }
 
     .city-depth {
       position: absolute;
@@ -2146,7 +2404,7 @@
       border-radius: 24px 34px 18px 18px;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.72), transparent 26%),
-        linear-gradient(90deg, #fff6ba 0%, #ffd44a 48%, #d61f2d 100%);
+        linear-gradient(90deg, var(--vehicle-start) 0%, var(--vehicle-mid) 54%, var(--vehicle-end) 100%);
       animation: metroGlide 14s linear infinite -5s;
     }
 
@@ -2157,7 +2415,7 @@
       height: 26px;
       border-radius: 11px;
       background:
-        repeating-linear-gradient(90deg, rgba(67,20,16,0.72) 0 38px, transparent 38px 48px),
+        repeating-linear-gradient(90deg, var(--vehicle-window) 0 38px, transparent 38px 48px),
         linear-gradient(90deg, rgba(255,255,255,0.28), rgba(255,255,255,0));
       box-shadow: inset 0 2px 0 rgba(255,255,255,0.42);
     }
@@ -2182,7 +2440,7 @@
       border-radius: 18px 26px 18px 18px;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.58), transparent 28%),
-        linear-gradient(145deg, #fff0a8 0%, #ffd44a 46%, #d61f2d 100%);
+        linear-gradient(145deg, var(--vehicle-start) 0%, var(--vehicle-mid) 48%, var(--vehicle-end) 100%);
       animation: busCruise 16s linear infinite -10s;
     }
 
@@ -2195,7 +2453,7 @@
       height: 28px;
       border-radius: 9px;
       background:
-        repeating-linear-gradient(90deg, rgba(67, 20, 16, 0.70) 0 30px, transparent 30px 40px),
+        repeating-linear-gradient(90deg, var(--vehicle-window) 0 30px, transparent 30px 40px),
         linear-gradient(90deg, rgba(255,255,255,0.30), transparent);
     }
 
@@ -2223,7 +2481,7 @@
       transform: translateX(-50%) rotate(-7deg);
       border-radius: 999px;
       background:
-        linear-gradient(90deg, transparent, rgba(255,212,74,0.26), rgba(214,31,45,0.20), transparent);
+        linear-gradient(90deg, transparent, var(--ribbon-one), var(--ribbon-two), transparent);
       filter: blur(10px);
       opacity: 0.78;
       animation: ribbonFloat 7s ease-in-out infinite alternate;
@@ -2244,6 +2502,16 @@
       to { transform: translateX(-50%) translateY(16px) rotate(-3deg); }
     }
 
+    @keyframes cloudDrift {
+      from { transform: translate3d(-4vw, 0, -90px); }
+      to { transform: translate3d(5vw, 10px, -90px); }
+    }
+
+    @keyframes starTwinkle {
+      from { opacity: 0.55; }
+      to { opacity: 0.95; }
+    }
+
     @media (max-width: 640px) {
       .skyline { bottom: 11vh; height: 130px; }
       .city-depth { height: 34vh; transform: translateX(-50%) rotateX(61deg) translateY(11vh); }
@@ -2256,7 +2524,9 @@
     @media (prefers-reduced-motion: reduce) {
       .metro-3d,
       .bus-3d,
-      .energy-ribbon {
+      .energy-ribbon,
+      .cloud,
+      .stars {
         animation: none;
       }
     }
@@ -2365,13 +2635,13 @@
     .transport-switcher button.active,
     .bus-route-card.selected .bus-select-btn {
       background:
-        linear-gradient(180deg, rgba(255,212,74,0.62), rgba(255,255,255,0) 36%),
-        linear-gradient(145deg, #df2a34, #8f1716);
+        linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0) 36%),
+        linear-gradient(145deg, var(--vehicle-mid), var(--vehicle-end));
       border: 1px solid rgba(255,255,255,0.52);
       color: #fff;
       text-shadow: 0 -1px 0 rgba(0,0,0,0.28);
       box-shadow:
-        5px 7px 14px rgba(201, 31, 47, 0.30),
+        5px 7px 14px var(--accent-medium),
         inset 0 2px 0 rgba(255,255,255,0.36),
         inset 0 -3px 7px rgba(0,0,0,0.20);
     }
@@ -2436,7 +2706,7 @@
 
     .map-icon {
       background:
-        linear-gradient(145deg, #fff1a6 0%, #ffd44a 44%, #d61f2d 100%);
+        linear-gradient(145deg, var(--vehicle-start) 0%, var(--vehicle-mid) 44%, var(--vehicle-end) 100%);
       border: 1px solid rgba(255,255,255,0.58);
       box-shadow:
         5px 7px 14px rgba(201, 31, 47, 0.30),
@@ -2516,6 +2786,10 @@
 <body>
 
 <div class="transit-scene" aria-hidden="true">
+  <div class="stars"></div>
+  <div class="sky-orb"></div>
+  <div class="cloud cloud-one"></div>
+  <div class="cloud cloud-two"></div>
   <div class="energy-ribbon"></div>
   <div class="skyline"></div>
   <div class="city-depth"></div>
@@ -2783,6 +3057,6 @@
     }
   };
 </script>
-<script src="app.js?v=20260809-transit-cache"></script>
+<script src="app.js?v=20260813-time-sky"></script>
 </body>
 </html>

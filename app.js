@@ -1609,9 +1609,43 @@
     return fromStationSource === 'live' || busFromSource === 'live';
   }
 
+  function getBengaluruTimeParts() {
+    const parts = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      hourCycle: 'h12'
+    }).formatToParts(new Date());
+
+    return parts.reduce((acc, part) => {
+      if (part.type !== 'literal') acc[part.type] = part.value;
+      return acc;
+    }, {});
+  }
+
+  function getBengaluruSkyClass(hour24) {
+    if (hour24 >= 5 && hour24 < 8) return 'sky-sunrise';
+    if (hour24 >= 8 && hour24 < 17) return 'sky-day';
+    if (hour24 >= 17 && hour24 < 19) return 'sky-sunset';
+    return 'sky-night';
+  }
+
   function updateLiveClock() {
-    const now = new Date();
-    document.getElementById('live-clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const bengaluruTime = getBengaluruTimeParts();
+    const hour12 = bengaluruTime.hour || '00';
+    const minute = bengaluruTime.minute || '00';
+    const second = bengaluruTime.second || '00';
+    const dayPeriod = bengaluruTime.dayPeriod || '';
+    const hourNumber = Number(hour12);
+    const hour24 = dayPeriod.toLowerCase() === 'pm'
+      ? (hourNumber === 12 ? 12 : hourNumber + 12)
+      : (hourNumber === 12 ? 0 : hourNumber);
+
+    document.getElementById('live-clock').innerText = `${hour12}:${minute}:${second} ${dayPeriod}`.trim();
+    document.body.classList.remove('sky-sunrise', 'sky-day', 'sky-sunset', 'sky-night');
+    document.body.classList.add(getBengaluruSkyClass(hour24));
   }
   setInterval(updateLiveClock, 1000);
   updateLiveClock();
