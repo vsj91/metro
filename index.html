@@ -24,7 +24,7 @@
   <meta name="keywords" content="Bangalore Metro route finder, nearest metro station Bangalore, nearest Namma Metro station, Bengaluru Metro route map, BMTC bus route finder, Bengaluru transit planner, Namma Metro route planner, BMRCL timetable, Bangalore metro fare, Forum Mall nearest metro station, UB City nearest metro station, Purple Line, Green Line, Yellow Line" />
   <meta name="robots" content="index, follow" />
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-  <meta name="author" content="Namma Metro and BMTC" />
+  <meta name="author" content="blrgo" />
   <meta name="geo.region" content="IN-KA" />
   <meta name="geo.placename" content="Bengaluru" />
   <meta name="ICBM" content="12.9716, 77.5946" />
@@ -44,93 +44,121 @@
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-	        "@type": "WebSite",
-	        "@id": "https://blrgo.com/#website",
-	        "url": "https://blrgo.com/",
-	        "name": "Namma Metro and BMTC",
-	        "inLanguage": "en-IN",
-	        "description": "Bangalore Metro, Bengaluru Namma Metro, nearest metro station, and BMTC bus route finder for everyday transit planning.",
-	        "potentialAction": {
-	          "@type": "SearchAction",
-	          "target": "https://blrgo.com/?q={search_term_string}",
-	          "query-input": "required name=search_term_string"
-	        }
-	      },
-      {
-        "@type": "WebApplication",
-        "@id": "https://blrgo.com/#app",
-        "url": "https://blrgo.com/",
-        "name": "Bangalore Metro and BMTC Bus Route Finder",
-	        "alternateName": ["Bengaluru Transit Planner", "Bengaluru Metro Route Finder", "Nearest Metro Station Bangalore", "Namma Metro and BMTC", "Bangalore Namma Metro Route Planner", "BMTC Bus Route Finder"],
-        "applicationCategory": "TravelApplication",
-        "operatingSystem": "All",
-        "isAccessibleForFree": true,
-        "inLanguage": "en-IN",
-	        "description": "Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes with nearest station search from Bengaluru places and landmarks, station stops, platform direction, estimated fare, bus transfers, live nearest station or bus stop, and BMRCL timetable frequency estimates.",
-	        "featureList": [
-	          "Bangalore Metro route planning",
-	          "Bengaluru Namma Metro route planning",
-	          "Nearest metro station search from places and landmarks",
-	          "BMTC bus route suggestions",
-          "BMTC bus transfer planning",
-          "Purple Line, Green Line, and Yellow Line stations",
-          "Estimated fare and journey time",
-          "Platform direction guidance",
-          "Live nearest metro station and bus stop from GPS",
-          "BMRCL timetable frequency estimates"
-        ]
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "How can I find a Bangalore Metro route?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Select a boarding station and destination station to view the Bangalore Metro or Bengaluru Namma Metro route, stops, interchange points, estimated fare, platform direction, and journey time."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does this show BMRCL platform direction?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The page shows estimated platform and direction guidance for Purple Line, Green Line, and Yellow Line journeys. Always verify final platform information at the station or on the official BMRCL website."
-            }
-          },
-	          {
-	            "@type": "Question",
-	            "name": "Can I use live GPS for the nearest metro station or BMTC bus stop?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-	              "text": "Yes. If location permission is granted, the route finder can set the boarding point from the nearest Namma Metro station or supported BMTC bus stop."
-	            }
-	          },
-	          {
-	            "@type": "Question",
-	            "name": "Can I search a Bengaluru place or landmark instead of a metro station?",
-	            "acceptedAnswer": {
-	              "@type": "Answer",
-	              "text": "Yes. Type a Bengaluru place, area, address, or landmark such as Forum Mall Koramangala or UB City. The map search suggests the place and automatically selects the nearest Bangalore Metro station for route planning."
-	            }
-	          },
-	          {
-	            "@type": "Question",
-	            "name": "Which metro station is nearest to Forum Mall Koramangala?",
-	            "acceptedAnswer": {
-	              "@type": "Answer",
-	              "text": "For Forum Mall Koramangala, the route finder can select BTM Layout as a nearby Namma Metro station based on the configured map search and metro station coordinates."
-	            }
-	          }
-	        ]
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://blrgo.com/#organization",
+      "name": "blrgo",
+      "alternateName": [
+        "Namma Metro and BMTC",
+        "Namma Metro Navigator",
+        "Bangalore Metro and BMTC Route Finder"
+      ],
+      "url": "https://blrgo.com/",
+      "sameAs": [
+        "https://www.instagram.com/blrmetro/"
+      ],
+      "areaServed": {
+        "@type": "City",
+        "name": "Bengaluru"
       }
-    ]
-  }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://blrgo.com/#website",
+      "url": "https://blrgo.com/",
+      "name": "blrgo",
+      "publisher": {
+        "@id": "https://blrgo.com/#organization"
+      },
+      "inLanguage": "en-IN",
+      "description": "Bangalore Metro, Bengaluru Namma Metro, nearest metro station, and BMTC bus route finder for everyday transit planning.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://blrgo.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://blrgo.com/#webapp",
+      "url": "https://blrgo.com/",
+      "name": "blrgo Bengaluru Transit Route Finder",
+      "alternateName": [
+        "Bengaluru Transit Planner",
+        "Bengaluru Metro Route Finder",
+        "Nearest Metro Station Bangalore",
+        "Namma Metro and BMTC",
+        "BMTC Bus Route Finder"
+      ],
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "All",
+      "isAccessibleForFree": true,
+      "publisher": {
+        "@id": "https://blrgo.com/#organization"
+      },
+      "inLanguage": "en-IN",
+      "description": "Plan Bangalore Metro, Bengaluru Namma Metro, and BMTC bus routes with nearest station search, station stops, platform direction, estimated fare, bus transfers, live nearest station or bus stop, and BMRCL timetable frequency estimates."
+    },
+    {
+      "@type": "Service",
+      "@id": "https://blrgo.com/#route-planning-service",
+      "name": "Bengaluru metro and bus route planning",
+      "serviceType": "Transit route planning",
+      "provider": {
+        "@id": "https://blrgo.com/#organization"
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Bengaluru"
+      },
+      "isAccessibleForFree": true,
+      "isRelatedTo": {
+        "@id": "https://blrgo.com/#webapp"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://blrgo.com/#webpage",
+      "url": "https://blrgo.com/",
+      "name": "Bangalore Metro and BMTC Bus Route Finder",
+      "description": "blrgo helps Bangalore commuters plan journeys across Bengaluru Metro (Namma Metro) and BMTC buses — nearest stations, routes, fares, platform directions, and quick travel estimates.",
+      "isPartOf": {
+        "@id": "https://blrgo.com/#website"
+      },
+      "about": {
+        "@id": "https://blrgo.com/#route-planning-service"
+      },
+      "mainEntity": {
+        "@id": "https://blrgo.com/#webapp"
+      },
+      "breadcrumb": {
+        "@id": "https://blrgo.com/#breadcrumb"
+      },
+      "inLanguage": "en-IN"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://blrgo.com/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://blrgo.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Bangalore Metro and BMTC Bus Route Finder",
+          "item": "https://blrgo.com/"
+        }
+      ]
+    }
+  ]
+}
   </script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
