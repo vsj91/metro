@@ -2877,6 +2877,293 @@
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68);
       }
     }
+
+
+    /* ============================================================
+       FINAL CONTRAST GUARD
+       Always readable across sunrise/day/sunset/night AND OS light/dark mode.
+       This intentionally sits at the very end of the stylesheet.
+       ============================================================ */
+
+    /* Light-looking automatic themes: dark text on nearly opaque light surfaces. */
+    body.sky-sunrise,
+    body.sky-day {
+      color-scheme: light;
+      --text: #152536;
+      --text-muted: #3f5669;
+      --footer-muted: #40596d;
+      --accent: #12689e;
+      --highlight: #a42f4e;
+      --warning: #765600;
+      --warning-text: #3d2d00;
+      --action-bg: #12689e;
+      --status-bg: #a42f4e;
+      --border: rgba(31, 55, 75, 0.34);
+      --item-border: rgba(31, 55, 75, 0.28);
+      --dropdown-bg: rgba(255, 255, 255, 0.99);
+    }
+
+    body.sky-sunrise {
+      --card-bg: rgba(255, 244, 222, 0.96);
+      --surface-bg: rgba(255, 235, 202, 0.94);
+      --surface-hover: rgba(255, 250, 239, 0.99);
+      --raised-bg: linear-gradient(145deg, rgba(255,251,242,0.99), rgba(246,218,182,0.97));
+    }
+
+    body.sky-day {
+      --card-bg: rgba(246, 251, 255, 0.97);
+      --surface-bg: rgba(229, 241, 250, 0.95);
+      --surface-hover: rgba(255, 255, 255, 0.99);
+      --raised-bg: linear-gradient(145deg, rgba(255,255,255,0.99), rgba(224,239,249,0.98));
+    }
+
+    /* Dark-looking automatic themes: bright text on nearly opaque dark surfaces. */
+    body.sky-sunset,
+    body.sky-night {
+      color-scheme: dark;
+      --text: #ffffff;
+      --text-muted: #e1eaf2;
+      --footer-muted: #d5e0e9;
+      --border: rgba(255, 255, 255, 0.26);
+      --item-border: rgba(255, 255, 255, 0.20);
+    }
+
+    body.sky-sunset {
+      --card-bg: rgba(79, 35, 42, 0.97);
+      --surface-bg: rgba(58, 28, 34, 0.95);
+      --surface-hover: rgba(108, 49, 55, 0.98);
+      --dropdown-bg: rgba(61, 29, 35, 0.995);
+      --accent: #ffe0a6;
+      --highlight: #ffb1aa;
+      --warning: #ffe0a3;
+      --warning-text: #fff0c7;
+      --action-bg: #8a3f35;
+      --status-bg: #9b3d50;
+      --raised-bg: linear-gradient(145deg, rgba(112,54,59,0.99), rgba(55,27,33,0.98));
+    }
+
+    body.sky-night {
+      --card-bg: rgba(20, 34, 50, 0.98);
+      --surface-bg: rgba(12, 27, 42, 0.97);
+      --surface-hover: rgba(35, 56, 76, 0.99);
+      --dropdown-bg: rgba(15, 30, 46, 0.995);
+      --accent: #b9e2ff;
+      --highlight: #e1caff;
+      --warning: #f6d77d;
+      --warning-text: #f9e9b8;
+      --action-bg: #246b9a;
+      --status-bg: #704c9a;
+      --raised-bg: linear-gradient(145deg, rgba(39,61,82,0.99), rgba(12,27,42,0.99));
+    }
+
+    /* If the OS/browser itself is dark, always use a dark high-contrast component palette. */
+    @media (prefers-color-scheme: dark) {
+      body.sky-sunrise,
+      body.sky-day,
+      body.sky-sunset,
+      body.sky-night {
+        color-scheme: dark;
+        --text: #ffffff;
+        --text-muted: #d9e4ed;
+        --footer-muted: #cbd8e3;
+        --card-bg: rgba(20, 33, 48, 0.98);
+        --surface-bg: rgba(12, 25, 39, 0.97);
+        --surface-hover: rgba(35, 55, 74, 0.99);
+        --dropdown-bg: rgba(14, 28, 43, 0.995);
+        --border: rgba(255,255,255,0.25);
+        --item-border: rgba(255,255,255,0.20);
+        --accent: #b9e2ff;
+        --highlight: #e2caff;
+        --warning: #f5d474;
+        --warning-text: #faeab8;
+        --action-bg: #246b9a;
+        --status-bg: #704c9a;
+        --raised-bg: linear-gradient(145deg, rgba(40,61,81,0.99), rgba(12,26,40,0.99));
+      }
+    }
+
+    /* Explicit text ownership for important UI areas. */
+    body,
+    .header h1,
+    .header h2,
+    .card,
+    .map-card,
+    .map-toolbar h2,
+    .bus-route-title,
+    .bus-live-title,
+    .html-route-heading,
+    .html-route-name,
+    .html-line-title,
+    .html-station-row,
+    .step,
+    .step-title,
+    .next-train-box .time-title,
+    .secondary-action-btn,
+    .transport-switcher button:not(.active),
+    .seo-content h2,
+    .seo-content h3,
+    .seo-content li,
+    input,
+    label {
+      color: var(--text) !important;
+    }
+
+    /* Secondary/helper text must remain visible, not washed out. */
+    .header p,
+    .source-toggle-label,
+    .source-helper,
+    .bus-helper,
+    .bus-route-sub,
+    .bus-live-sub,
+    .bus-stop-chain,
+    .metric-card .lbl,
+    .next-train-box .time-sub,
+    .step-desc,
+    .map-toolbar p,
+    .map-legend,
+    .html-route-sub,
+    .html-station-short,
+    .html-tag,
+    .seo-content p,
+    footer,
+    footer p,
+    .api-status,
+    .bus-note {
+      color: var(--text-muted) !important;
+      opacity: 1 !important;
+    }
+
+    /* Inputs/autocomplete are common contrast failure points. */
+    input {
+      background: var(--surface-bg) !important;
+      border-color: var(--border) !important;
+      color: var(--text) !important;
+      caret-color: var(--text) !important;
+      -webkit-text-fill-color: var(--text) !important;
+      opacity: 1 !important;
+    }
+
+    input::placeholder {
+      color: var(--text-muted) !important;
+      -webkit-text-fill-color: var(--text-muted) !important;
+      opacity: 1 !important;
+    }
+
+    input:disabled,
+    input[readonly] {
+      color: var(--text) !important;
+      -webkit-text-fill-color: var(--text) !important;
+      opacity: 0.88 !important;
+    }
+
+    .autocomplete-results,
+    .autocomplete-item {
+      color: var(--text) !important;
+      background-color: var(--dropdown-bg) !important;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item:focus {
+      color: var(--text) !important;
+      background: var(--surface-hover) !important;
+    }
+
+    /* Accent/status labels remain strong and readable. */
+    .gps-status,
+    .metric-card .val,
+    .next-train-box .time-val,
+    footer a,
+    .map-live-pill {
+      opacity: 1 !important;
+      font-weight: 800;
+    }
+
+    .gps-status,
+    .metric-card .val,
+    .next-train-box .time-val,
+    footer a,
+    .platform-tag {
+      color: var(--accent) !important;
+    }
+
+    .map-live-pill,
+    .next-train-box .time-val.no-service {
+      color: var(--highlight) !important;
+    }
+
+    /* Warning chips/tags previously had hard-coded dark text in dark themes. */
+    .html-tag.important,
+    .bus-transfer-tag,
+    .alert {
+      color: var(--warning-text) !important;
+    }
+
+    /* Yellow/interchange chips deliberately use a light background. */
+    .badge.yellow,
+    .badge.interchange,
+    .line-badge-sm.Yellow,
+    .line-badge-sm.Interchange {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* Buttons use a dedicated dark-enough action background.
+       --accent stays free to be bright/readable as text in dark mode. */
+    .primary-action-btn,
+    .transport-switcher button.active,
+    .html-route-badge,
+    .bus-route-card.selected .bus-select-btn {
+      background: var(--action-bg) !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+    .live-tag {
+      background: var(--status-bg) !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+    .bus-route-card:not(.selected) .bus-select-btn {
+      background: var(--card-bg) !important;
+      color: var(--accent) !important;
+      -webkit-text-fill-color: var(--accent) !important;
+    }
+
+    .bus-number-pill {
+      background: #f6d77d !important;
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* Improve separation against animated/gradient page backgrounds. */
+    body.sky-sunset .header,
+    body.sky-night .header,
+    body.sky-sunset footer,
+    body.sky-night footer {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.68);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .header, footer {
+        text-shadow: 0 1px 2px rgba(0,0,0,0.68);
+      }
+    }
+
+    /* Leaflet tooltips sit outside normal card inheritance. */
+    .leaflet-metro-map .leaflet-tooltip,
+    .leaflet-metro-map .leaflet-tooltip.route-station-label {
+      color: var(--text) !important;
+      background: var(--card-bg) !important;
+      border-color: var(--border) !important;
+      opacity: 1 !important;
+    }
+
+    .leaflet-metro-map .leaflet-tooltip.live-location-label {
+      color: var(--highlight) !important;
+      background: var(--card-bg) !important;
+    }
+
   </style>
 </head>
 <body>
@@ -3009,7 +3296,7 @@
       <span><i class="legend-line" style="background:var(--purple-line);"></i>Purple</span>
       <span><i class="legend-line" style="background:var(--green-line);"></i>Green</span>
       <span><i class="legend-line" style="background:var(--yellow-line);"></i>Yellow</span>
-      <span>🚆 live GPS position</span>
+      <span>👤 live GPS position</span>
       <span>Colored path: selected route</span>
       <span>Free tiles: Esri satellite / OpenStreetMap</span>
     </div>
@@ -3153,6 +3440,6 @@
     }
   };
 </script>
-<script src="app.js?v=20260816-person-move-only"></script>
+<script src="app.js?v=20260816-contrast-guard"></script>
 </body>
 </html>
