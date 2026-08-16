@@ -1221,7 +1221,7 @@
         })
         .addTo(leafletMap);
     } else {
-      // Lightweight update only: move the live marker. Do NOT redraw route lines or refit the map.
+      // GPS-only update: move the human marker. Never redraw route lines or refit the map.
       leafletLiveLocationMarker.setLatLng(latLng);
       leafletLiveLocationMarker.options.title = tooltipText;
       if (leafletLiveLocationMarker.getTooltip()) {
@@ -1261,7 +1261,6 @@
       focusKey,
       from,
       to,
-      currentNearestStation || '',
       leafletAutoFitRequested ? 'fit' : 'steady'
     ].join('::');
 
@@ -1308,7 +1307,7 @@
     });
 
     const stationList = isRouteMap
-      ? Array.from(new Set([...currentRoutePath, currentNearestStation].filter(Boolean)))
+      ? Array.from(new Set(currentRoutePath.filter(Boolean)))
       : Object.keys(STATIONS);
 
     stationList.forEach((stationName) => {
@@ -1973,10 +1972,6 @@
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
 
-        // GPS can change every few seconds. Only move the live marker for small coordinate changes.
-        // Do not rebuild route lines, clear Leaflet layers, or refit bounds here.
-        updateLiveGpsMarker(userLat, userLng);
-
         const nearestMetro = findNearestPoint(userLat, userLng, STATIONS);
         const nearestBus = findNearestPoint(userLat, userLng, BMTC_STOP_COORDS);
 
@@ -1984,28 +1979,41 @@
           const nearestChanged = nearestMetro.name !== currentNearestStation;
           currentNearestStation = nearestMetro.name;
           const distInMeters = (nearestMetro.distanceKm * 1000).toFixed(0);
+          const activeJourney = currentPanel === 'result' && currentRoutePath.length > 1;
 
           if (fromStationSource === 'live') {
             const fromInput = document.getElementById('from-input');
-            const stationChangedInInput = fromInput.value !== nearestMetro.name;
-            fromInput.value = nearestMetro.name;
-            document.getElementById('from-clear').style.display = 'none';
 
-            // Full route/map redraw happens only when we reach/change to another nearest station.
-            if (nearestChanged || stationChangedInInput) {
-              requestLeafletRouteRedraw(true);
-              updateRouteFromInputs(true);
+            if (!activeJourney) {
+              // Before a journey starts, live GPS may choose/update the boarding station.
+              // Once a route is selected, freeze the route/origin and only move the human marker.
+              const stationChangedInInput = fromInput.value !== nearestMetro.name;
+              fromInput.value = nearestMetro.name;
+              document.getElementById('from-clear').style.display = 'none';
+
+              if (nearestChanged || stationChangedInInput) {
+                const destination = normalizeStationName(document.getElementById('to-input')?.value || '');
+                if (!STATIONS[destination]) {
+                  refreshUnselectedTrainTimesOnly(nearestMetro.name);
+                }
+              }
             }
-            statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
+
+            statusDiv.innerHTML = activeJourney
+              ? `Live GPS: <strong>${nearestMetro.name}</strong> (${distInMeters}m from station). Route stays fixed while you travel.`
+              : `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
           } else {
             statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
-            // Manual boarding mode keeps the selected route, but refreshes station highlighting once per station change.
-            if (nearestChanged) {
-              requestLeafletRouteRedraw(false);
-              renderMetroMap();
-            }
           }
+
+          // Station-name changes update lightweight text only. Never redraw/refit the route map.
+          const livePill = document.getElementById('map-live-pill');
+          if (livePill) livePill.textContent = `Live: ${nearestMetro.name}`;
         }
+
+        // Every GPS coordinate update moves only the persistent human marker.
+        // No clearLayers(), renderMetroMap(), fitBounds(), or route recalculation here.
+        updateLiveGpsMarker(userLat, userLng);
 
         if (nearestBus) {
           const busChanged = nearestBus.name !== currentNearestBusStop;
