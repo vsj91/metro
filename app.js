@@ -17,6 +17,8 @@
   let leafletUserTouched = false;
   let leafletProgrammaticFit = false;
   let leafletAutoFitRequested = true;
+  let currentGpsPosition = null;
+  let leafletLiveLocationMarker = null;
   let busRouteOptions = [];
   let selectedBusRouteIndex = -1;
   let busLeafletMap = null;
@@ -1171,6 +1173,51 @@
     return true;
   }
 
+  function ensureLeafletLiveLocationMarker() {
+    if (!leafletMap || !currentGpsPosition) return;
+
+    const latLng = [currentGpsPosition.lat, currentGpsPosition.lng];
+    const tooltipText = currentNearestStation
+      ? `Live GPS • nearest ${shortMapLabel(currentNearestStation)}`
+      : 'Live GPS location';
+
+    if (!leafletLiveLocationMarker) {
+      const trainIcon = L.divIcon({
+        className: '',
+        html: '<div class="leaflet-train-marker">🚆</div>',
+        iconSize: [34, 28],
+        iconAnchor: [17, 14]
+      });
+
+      leafletLiveLocationMarker = L.marker(latLng, {
+        icon: trainIcon,
+        title: tooltipText,
+        zIndexOffset: 1200
+      })
+        .bindTooltip(tooltipText, {
+          direction: 'bottom',
+          offset: [0, 10],
+          opacity: 0.98,
+          permanent: true,
+          className: 'live-location-label'
+        })
+        .addTo(leafletMap);
+    } else {
+      // Lightweight update only: move the live marker. Do NOT redraw route lines or refit the map.
+      leafletLiveLocationMarker.setLatLng(latLng);
+      leafletLiveLocationMarker.options.title = tooltipText;
+      if (leafletLiveLocationMarker.getTooltip()) {
+        leafletLiveLocationMarker.setTooltipContent(tooltipText);
+      }
+    }
+  }
+
+  function updateLiveGpsMarker(lat, lng) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    currentGpsPosition = { lat, lng };
+    ensureLeafletLiveLocationMarker();
+  }
+
   function renderLeafletMetroMap() {
     if (!initLeafletMap()) return false;
 
@@ -1269,24 +1316,10 @@
       bounds.push(latLng);
     });
 
-    if (currentNearestStation && STATIONS[currentNearestStation]) {
-      const liveLatLng = stationLatLng(currentNearestStation);
-      const trainIcon = L.divIcon({
-        className: '',
-        html: '<div class="leaflet-train-marker">🚆</div>',
-        iconSize: [34, 28],
-        iconAnchor: [17, 14]
-      });
-      L.marker(liveLatLng, { icon: trainIcon, title: `Live nearest: ${currentNearestStation}`, zIndexOffset: 1000 })
-        .bindTooltip(`Live nearest: ${shortMapLabel(currentNearestStation)}`, {
-          direction: 'bottom',
-          offset: [0, 10],
-          opacity: 0.98,
-          permanent: true,
-          className: 'live-location-label'
-        })
-        .addTo(leafletLayerGroup);
-      bounds.push(liveLatLng);
+    // Keep the actual GPS marker separate from leafletLayerGroup so route redraws do not destroy it.
+    ensureLeafletLiveLocationMarker();
+    if (!isRouteMap && currentGpsPosition) {
+      bounds.push([currentGpsPosition.lat, currentGpsPosition.lng]);
     }
 
     if (summary) {
@@ -1906,6 +1939,10 @@
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
 
+        // GPS can change every few seconds. Only move the live marker for small coordinate changes.
+        // Do not rebuild route lines, clear Leaflet layers, or refit bounds here.
+        updateLiveGpsMarker(userLat, userLng);
+
         const nearestMetro = findNearestPoint(userLat, userLng, STATIONS);
         const nearestBus = findNearestPoint(userLat, userLng, BMTC_STOP_COORDS);
 
@@ -1919,16 +1956,21 @@
             const stationChangedInInput = fromInput.value !== nearestMetro.name;
             fromInput.value = nearestMetro.name;
             document.getElementById('from-clear').style.display = 'none';
+
+            // Full route/map redraw happens only when we reach/change to another nearest station.
             if (nearestChanged || stationChangedInInput) {
-              const destination = normalizeStationName(document.getElementById('to-input')?.value || '');
-              if (!STATIONS[destination]) renderUnselectedDualDirections(nearestMetro.name);
+              requestLeafletAutoFit(true);
               updateRouteFromInputs(true);
             }
             statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
           } else {
             statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
+            // Manual boarding mode keeps the selected route, but refreshes station highlighting once per station change.
+            if (nearestChanged) {
+              requestLeafletAutoFit(false);
+              renderMetroMap();
+            }
           }
-          if (nearestChanged) renderMetroMap();
         }
 
         if (nearestBus) {
@@ -2134,7 +2176,8 @@
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
-    const totalMins = hours * 60 + minutes;
+    const seconds = now.getSeconds();
+    const totalMins = hours * 60 + minutes + (seconds / 60);
     const timetable = BMRC_TIMETABLES[line];
     const directionKey = timetable ? getDirectionKey(line, directionText) : null;
     const bands = directionKey ? timetable[getScheduleKey(now)]?.[directionKey] : null;
@@ -2189,7 +2232,6 @@
     currentPanel = 'unselected';
     currentRoutePath = [];
     updatePanelVisibility();
-    renderMetroMap();
 
     if (!STATIONS[boardingStation]) return;
 
@@ -2246,6 +2288,95 @@
     container.appendChild(box);
     return schedule;
   }
+
+  function refreshRouteArrivalTags(trainArrival) {
+    const timeline = document.getElementById('timeline');
+    if (!timeline || currentRoutePath.length < 2) return;
+
+    const tags = timeline.querySelectorAll('.arrival-time-tag');
+    if (!tags.length) return;
+
+    if (!trainArrival.isAvailable || !trainArrival.dateObj) {
+      tags.forEach(tag => {
+        tag.textContent = 'No Service';
+        tag.classList.add('no-service-tag');
+      });
+      return;
+    }
+
+    let runningTime = new Date(trainArrival.dateObj.getTime());
+    tags.forEach((tag, index) => {
+      if (index > 0) {
+        const prevStation = currentRoutePath[index - 1];
+        const extraMins = STATIONS[prevStation]?.line === 'Interchange' ? 5 : 2.5;
+        runningTime = new Date(runningTime.getTime() + extraMins * 60000);
+      }
+      tag.classList.remove('no-service-tag');
+      tag.textContent = `${index === 0 ? 'Dep:' : 'Arr:'} ${runningTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    });
+  }
+
+  function refreshUnselectedTrainTimesOnly(boardingStation) {
+    const container = document.getElementById('unselected-dual-container');
+    if (!container || !STATIONS[boardingStation]) return;
+
+    const line = STATIONS[boardingStation]?.line === 'Interchange' ? 'Purple Line' : STATIONS[boardingStation]?.line;
+    let directions = [];
+
+    if (line === 'Purple Line') {
+      directions = [
+        { label: 'Platform 1', dir: 'Towards Whitefield (Kadugodi)', line, offset: 0 },
+        { label: 'Platform 2', dir: 'Towards Challaghatta', line, offset: 3 }
+      ];
+    } else if (line === 'Green Line') {
+      directions = [
+        { label: 'Platform 2', dir: 'Towards Silk Institute', line, offset: 0 },
+        { label: 'Platform 1', dir: 'Towards Madavara', line, offset: 4 }
+      ];
+    } else {
+      directions = [
+        { label: 'Platform 2', dir: 'Towards Delta electronics Bommasandra', line, offset: 0 },
+        { label: 'Platform 1', dir: 'Towards Rashtreeya Vidyalaya Road', line, offset: 3 }
+      ];
+    }
+
+    container.innerHTML = '';
+    directions.forEach(d => {
+      const schedule = getNextTrainArrival({ direction: d.dir, line: d.line }, d.offset);
+      const box = document.createElement('div');
+      box.className = 'next-train-box';
+      box.innerHTML = `
+        <div>
+          <div class="time-title">${d.label} • ${d.dir}</div>
+          <div class="time-sub">${schedule.detail}</div>
+        </div>
+        <div class="time-val ${!schedule.isAvailable ? 'no-service' : ''}">${schedule.mins}</div>
+      `;
+      container.appendChild(box);
+    });
+  }
+
+  function refreshTrainTimesOnly() {
+    // This timer updates only train text/ETA DOM. It intentionally never calls renderMetroMap().
+    if (activeTransportMode !== 'metro') return;
+
+    if (currentPanel === 'result' && currentRoutePath.length > 1) {
+      const platInfo = getPlatformDetails(currentRoutePath[0], currentRoutePath[1]);
+      const trainArrival = renderSingleSelectedRouteTrain(platInfo);
+      const noServiceBanner = document.getElementById('no-service-banner');
+      if (noServiceBanner) noServiceBanner.style.display = trainArrival.isAvailable ? 'none' : 'block';
+      refreshRouteArrivalTags(trainArrival);
+      return;
+    }
+
+    if (currentPanel === 'unselected') {
+      const boardingStation = normalizeStationName(document.getElementById('from-input')?.value || '');
+      if (STATIONS[boardingStation]) refreshUnselectedTrainTimesOnly(boardingStation);
+    }
+  }
+
+  // Refresh countdowns frequently enough to cross minute boundaries without touching the map.
+  window.setInterval(refreshTrainTimesOnly, 15000);
 
   function showBoardingDirections() {
     currentPanel = 'unselected';
@@ -2438,6 +2569,14 @@
     document.getElementById('unselected-card').style.display = isBus ? 'none' : (currentPanel === 'unselected' ? 'block' : 'none');
     document.getElementById('result-card').style.display = isBus ? 'none' : (currentPanel === 'result' ? 'block' : 'none');
     document.getElementById('bus-panel').classList.toggle('active', isBus);
+
+    if (!isBus) {
+      window.setTimeout(() => {
+        renderMetroMap();
+        if (leafletMap) leafletMap.invalidateSize({ pan: false });
+        ensureLeafletLiveLocationMarker();
+      }, 0);
+    }
   }
 
   function normalizeBusStop(value) {

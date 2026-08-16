@@ -2781,6 +2781,102 @@
         text-shadow: 0 1px 0 rgba(0,0,0,0.54);
       }
     }
+
+
+    /* Accessibility: keep text readable in every automatic sky theme. */
+    body.sky-sunrise {
+      color-scheme: light;
+      --text: #2f2023;
+      --text-muted: #60494d;
+      --footer-muted: #60494d;
+      --warning: #6f5000;
+      --warning-text: #3f2b00;
+    }
+
+    body.sky-day {
+      color-scheme: light;
+      --text: #183247;
+      --text-muted: #4c6577;
+      --footer-muted: #4c6577;
+      --warning: #765900;
+      --warning-text: #3f3100;
+    }
+
+    body.sky-sunset {
+      color-scheme: dark;
+      --text: #fff8f4;
+      --text-muted: #f0d8d1;
+      --footer-muted: #ead0c8;
+      --warning: #ffe0a3;
+      --warning-text: #fff2d4;
+    }
+
+    body.sky-night {
+      color-scheme: dark;
+      --text: #f7fbff;
+      --text-muted: #c8d7e5;
+      --footer-muted: #bdcddd;
+      --warning: #f2cd72;
+      --warning-text: #f8e7b4;
+    }
+
+    /* Browser placeholder opacity was making helper text especially faint. */
+    input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.92;
+    }
+
+    /* Night/sunset can run even when the user's OS is in light mode. */
+    body.sky-sunset .header,
+    body.sky-night .header,
+    body.sky-sunset footer,
+    body.sky-night footer {
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68);
+    }
+
+    body.sky-sunrise .header,
+    body.sky-day .header,
+    body.sky-sunrise footer,
+    body.sky-day footer {
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+
+    /* Improve low-priority text without changing the visual hierarchy. */
+    .source-helper,
+    .bus-helper,
+    .time-sub,
+    .step-desc,
+    .map-toolbar p,
+    .seo-content p,
+    footer p,
+    input,
+    label {
+      opacity: 1;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body.sky-sunrise,
+      body.sky-day,
+      body.sky-sunset,
+      body.sky-night {
+        color-scheme: dark;
+        --text: #f7fbff;
+        --text-muted: #c5d3df;
+        --footer-muted: #bac9d6;
+        --warning-text: #f6e4af;
+      }
+
+      body.sky-sunrise .header,
+      body.sky-day .header,
+      body.sky-sunset .header,
+      body.sky-night .header,
+      body.sky-sunrise footer,
+      body.sky-day footer,
+      body.sky-sunset footer,
+      body.sky-night footer {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68);
+      }
+    }
   </style>
 </head>
 <body>
@@ -2913,7 +3009,7 @@
       <span><i class="legend-line" style="background:var(--purple-line);"></i>Purple</span>
       <span><i class="legend-line" style="background:var(--green-line);"></i>Green</span>
       <span><i class="legend-line" style="background:var(--yellow-line);"></i>Yellow</span>
-      <span>🚆 live nearest station</span>
+      <span>🚆 live GPS position</span>
       <span>Colored path: selected route</span>
       <span>Free tiles: Esri satellite / OpenStreetMap</span>
     </div>
@@ -3057,6 +3153,6 @@
     }
   };
 </script>
-<script src="app.js?v=20260813-time-sky"></script>
+<script src="app.js?v=20260816-live-station-refresh"></script>
 </body>
 </html>
