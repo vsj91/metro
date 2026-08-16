@@ -26,6 +26,33 @@
   let transitApiLoadStatus = { metro: 'fallback', bus: 'fallback' };
   let busVehiclePositions = [];
 
+  // Live metro journey state is deliberately separate from route/map state.
+  // GPS may advance this tracker, but it must never rewrite currentRoutePath or redraw the route.
+  const METRO_JOURNEY_GEOFENCE = {
+    stationEnteredM: 120,
+    reachedStationM: 90,
+    approachingStationM: 350,
+    trainDepartureM: 95,
+    walkingMinKmh: 1.2,
+    trainMinKmh: 8,
+    lowAccuracyM: 140,
+    reachedHoldMs: 8000,
+    boardedHoldMs: 7000
+  };
+
+  let metroJourneyTracker = {
+    routeKey: '',
+    phase: 'idle',
+    routeIndex: 0,
+    lastPosition: null,
+    speedSamples: [],
+    previousNextDistanceM: null,
+    trainMovementConfirmations: 0,
+    stationEnteredAt: 0,
+    phaseChangedAt: 0,
+    lastStatusKey: ''
+  };
+
   const DEFAULT_TRANSIT_API_CONFIG = {
     timeoutMs: 10000,
     refreshMs: 60000,
@@ -1924,6 +1951,242 @@
     return currentPanel === 'result' && currentRoutePath.length > 1;
   }
 
+  function resetMetroJourneyTracker(path = currentRoutePath) {
+    const routeKey = Array.isArray(path) && path.length > 1 ? path.join('|') : '';
+    metroJourneyTracker = {
+      routeKey,
+      phase: routeKey ? 'waiting_for_station' : 'idle',
+      routeIndex: 0,
+      lastPosition: null,
+      speedSamples: [],
+      previousNextDistanceM: null,
+      trainMovementConfirmations: 0,
+      stationEnteredAt: 0,
+      phaseChangedAt: Date.now(),
+      lastStatusKey: ''
+    };
+    updateMetroJourneyStatusCard();
+  }
+
+  function setMetroJourneyPhase(phase, nowMs = Date.now()) {
+    if (metroJourneyTracker.phase !== phase) {
+      metroJourneyTracker.phase = phase;
+      metroJourneyTracker.phaseChangedAt = nowMs;
+    }
+  }
+
+  function getMedian(values) {
+    if (!values.length) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  function getSmoothedGpsSpeedKmh(lat, lng, position) {
+    const nowMs = Number(position?.timestamp) || Date.now();
+    let speedKmh = Number.isFinite(position?.coords?.speed) && position.coords.speed >= 0
+      ? position.coords.speed * 3.6
+      : null;
+
+    const previous = metroJourneyTracker.lastPosition;
+    if (speedKmh === null && previous && nowMs > previous.time) {
+      const seconds = (nowMs - previous.time) / 1000;
+      if (seconds >= 0.5 && seconds <= 30) {
+        const km = getDistanceInKm(previous.lat, previous.lng, lat, lng);
+        speedKmh = (km / seconds) * 3600;
+      }
+    }
+
+    metroJourneyTracker.lastPosition = { lat, lng, time: nowMs };
+    if (speedKmh !== null && Number.isFinite(speedKmh) && speedKmh >= 0 && speedKmh < 160) {
+      metroJourneyTracker.speedSamples.push(speedKmh);
+      if (metroJourneyTracker.speedSamples.length > 4) metroJourneyTracker.speedSamples.shift();
+    }
+    return getMedian(metroJourneyTracker.speedSamples);
+  }
+
+  function getRouteStationDistanceM(index, lat, lng) {
+    const stationName = currentRoutePath[index];
+    const station = STATIONS[stationName];
+    if (!station) return Infinity;
+    return getDistanceInKm(lat, lng, station.lat, station.lng) * 1000;
+  }
+
+  function updateMetroJourneyStatusCard(extra = {}) {
+    const card = document.getElementById('metro-journey-status-card');
+    const title = document.getElementById('metro-journey-status-title');
+    const detail = document.getElementById('metro-journey-status-detail');
+    const next = document.getElementById('metro-journey-status-next');
+    if (!card || !title || !detail || !next) return;
+
+    if (!isMetroJourneyActive()) {
+      card.className = 'metro-journey-status-card state-idle';
+      title.textContent = '📍 Live journey tracking ready';
+      detail.textContent = 'Select a route and keep GPS enabled.';
+      next.textContent = '';
+      return;
+    }
+
+    const index = Math.max(0, Math.min(metroJourneyTracker.routeIndex, currentRoutePath.length - 1));
+    const current = currentRoutePath[index];
+    const nextStation = currentRoutePath[index + 1] || null;
+    const speedText = Number.isFinite(extra.speedKmh) ? ` • ${Math.round(extra.speedKmh)} km/h` : '';
+    const accuracyText = Number.isFinite(extra.accuracy) ? ` • GPS ±${Math.round(extra.accuracy)}m` : '';
+
+    let iconTitle = '📍 Tracking journey';
+    let description = `Waiting for GPS near ${current}.`;
+    let stateClass = 'state-waiting';
+
+    switch (metroJourneyTracker.phase) {
+      case 'entered_station':
+        iconTitle = `🚉 Entered metro station`;
+        description = `Detected inside the ${current} station area${accuracyText}.`;
+        stateClass = 'state-station';
+        break;
+      case 'moving_to_train':
+        iconTitle = '🚶 Moving to train';
+        description = `Movement detected inside/around ${current}${speedText}.`;
+        stateClass = 'state-walking';
+        break;
+      case 'entered_train':
+        iconTitle = '🚇 Entered metro train';
+        description = `Boarding inferred because movement now follows your selected metro route${speedText}.`;
+        stateClass = 'state-train';
+        break;
+      case 'train_moving':
+        iconTitle = '🚇 Train moving';
+        description = nextStation ? `Travelling from ${current} towards ${nextStation}${speedText}.` : `Train movement detected${speedText}.`;
+        stateClass = 'state-train';
+        break;
+      case 'approaching_next_station':
+        iconTitle = `📍 Approaching next route station`;
+        description = nextStation ? `Approaching ${nextStation}${Number.isFinite(extra.nextDistanceM) ? ` • ~${Math.max(0, Math.round(extra.nextDistanceM))}m` : ''}.` : 'Approaching the next station.';
+        stateClass = 'state-approaching';
+        break;
+      case 'reached_next_station':
+        iconTitle = `✅ Reached next route station`;
+        description = `${current} reached. BLRGO will continue tracking the next station.`;
+        stateClass = 'state-reached';
+        break;
+      case 'reached_destination':
+        iconTitle = '🎯 Reached destination station';
+        description = `${current} reached. Journey complete.`;
+        stateClass = 'state-complete';
+        break;
+      default:
+        iconTitle = '📍 Waiting to enter metro station';
+        description = `Head towards ${current}; BLRGO will detect the station area automatically.`;
+        stateClass = 'state-waiting';
+    }
+
+    card.className = `metro-journey-status-card ${stateClass}`;
+    title.textContent = iconTitle;
+    detail.textContent = description;
+    next.textContent = nextStation ? `Next route station: ${nextStation}` : 'Destination reached';
+  }
+
+  function updateMetroJourneyTimelineProgress() {
+    const timeline = document.getElementById('timeline');
+    if (!timeline || !isMetroJourneyActive()) return;
+    const reachedIndex = metroJourneyTracker.routeIndex;
+    timeline.querySelectorAll('.step[data-station]').forEach((step, index) => {
+      step.classList.toggle('route-station-reached', index <= reachedIndex);
+      step.classList.toggle('route-station-next', index === reachedIndex + 1);
+    });
+  }
+
+  function updateMetroJourneyState(lat, lng, position) {
+    if (!isMetroJourneyActive()) return;
+
+    const routeKey = currentRoutePath.join('|');
+    if (metroJourneyTracker.routeKey !== routeKey) resetMetroJourneyTracker(currentRoutePath);
+
+    const nowMs = Number(position?.timestamp) || Date.now();
+    const accuracy = Number(position?.coords?.accuracy);
+    const speedKmh = getSmoothedGpsSpeedKmh(lat, lng, position);
+    const lastIndex = currentRoutePath.length - 1;
+    let index = Math.max(0, Math.min(metroJourneyTracker.routeIndex, lastIndex));
+    let currentDistanceM = getRouteStationDistanceM(index, lat, lng);
+    let nextDistanceM = index < lastIndex ? getRouteStationDistanceM(index + 1, lat, lng) : Infinity;
+
+    // Poor indoor GPS is common. We still move the person icon, but do not advance route state on very poor fixes.
+    if (Number.isFinite(accuracy) && accuracy > METRO_JOURNEY_GEOFENCE.lowAccuracyM) {
+      updateMetroJourneyStatusCard({ speedKmh, accuracy, nextDistanceM });
+      return;
+    }
+
+    if (index === lastIndex) {
+      setMetroJourneyPhase('reached_destination', nowMs);
+      updateMetroJourneyStatusCard({ speedKmh, accuracy });
+      updateMetroJourneyTimelineProgress();
+      return;
+    }
+
+    // If GPS is already inside the next route station geofence, advance exactly one route station.
+    if (nextDistanceM <= METRO_JOURNEY_GEOFENCE.reachedStationM) {
+      metroJourneyTracker.routeIndex = index + 1;
+      index = metroJourneyTracker.routeIndex;
+      metroJourneyTracker.previousNextDistanceM = null;
+      metroJourneyTracker.trainMovementConfirmations = 0;
+      setMetroJourneyPhase(index === lastIndex ? 'reached_destination' : 'reached_next_station', nowMs);
+      updateJourneyLiveStationUi();
+      updateMetroJourneyTimelineProgress();
+      updateMetroJourneyStatusCard({ speedKmh, accuracy, nextDistanceM: 0 });
+      return;
+    }
+
+    const phaseAgeMs = nowMs - metroJourneyTracker.phaseChangedAt;
+    const previousNextDistanceM = metroJourneyTracker.previousNextDistanceM;
+    const gettingCloserToNext = Number.isFinite(previousNextDistanceM)
+      ? nextDistanceM < previousNextDistanceM - 5
+      : false;
+    metroJourneyTracker.previousNextDistanceM = nextDistanceM;
+
+    if (metroJourneyTracker.phase === 'waiting_for_station' || metroJourneyTracker.phase === 'idle') {
+      if (currentDistanceM <= METRO_JOURNEY_GEOFENCE.stationEnteredM) {
+        metroJourneyTracker.stationEnteredAt = nowMs;
+        setMetroJourneyPhase('entered_station', nowMs);
+      }
+    } else if (metroJourneyTracker.phase === 'entered_station') {
+      if (speedKmh >= METRO_JOURNEY_GEOFENCE.walkingMinKmh && speedKmh < METRO_JOURNEY_GEOFENCE.trainMinKmh) {
+        setMetroJourneyPhase('moving_to_train', nowMs);
+      }
+      if (speedKmh >= METRO_JOURNEY_GEOFENCE.trainMinKmh && gettingCloserToNext) {
+        metroJourneyTracker.trainMovementConfirmations += 1;
+      }
+    } else if (metroJourneyTracker.phase === 'moving_to_train') {
+      if (speedKmh >= METRO_JOURNEY_GEOFENCE.trainMinKmh && gettingCloserToNext && currentDistanceM >= METRO_JOURNEY_GEOFENCE.trainDepartureM) {
+        metroJourneyTracker.trainMovementConfirmations += 1;
+      } else if (speedKmh < METRO_JOURNEY_GEOFENCE.trainMinKmh) {
+        metroJourneyTracker.trainMovementConfirmations = Math.max(0, metroJourneyTracker.trainMovementConfirmations - 1);
+      }
+    } else if (metroJourneyTracker.phase === 'entered_train') {
+      // Keep the boarding-detected state visible briefly before switching to moving train.
+      if (phaseAgeMs >= METRO_JOURNEY_GEOFENCE.boardedHoldMs) {
+        setMetroJourneyPhase('train_moving', nowMs);
+      }
+    } else if (metroJourneyTracker.phase === 'reached_next_station') {
+      // Hold the reached message briefly through dwell, then resume when this train leaves for the next route station.
+      if (phaseAgeMs >= METRO_JOURNEY_GEOFENCE.reachedHoldMs && speedKmh >= METRO_JOURNEY_GEOFENCE.trainMinKmh && currentDistanceM >= METRO_JOURNEY_GEOFENCE.trainDepartureM && gettingCloserToNext) {
+        setMetroJourneyPhase('train_moving', nowMs);
+      }
+    }
+
+    if ((metroJourneyTracker.phase === 'entered_station' || metroJourneyTracker.phase === 'moving_to_train') && metroJourneyTracker.trainMovementConfirmations >= 2) {
+      setMetroJourneyPhase('entered_train', nowMs);
+      metroJourneyTracker.trainMovementConfirmations = 0;
+    }
+
+    if ((metroJourneyTracker.phase === 'train_moving' || metroJourneyTracker.phase === 'entered_train') && nextDistanceM <= METRO_JOURNEY_GEOFENCE.approachingStationM) {
+      setMetroJourneyPhase('approaching_next_station', nowMs);
+    } else if (metroJourneyTracker.phase === 'approaching_next_station' && nextDistanceM > METRO_JOURNEY_GEOFENCE.approachingStationM + 80) {
+      setMetroJourneyPhase('train_moving', nowMs);
+    }
+
+    updateMetroJourneyTimelineProgress();
+    updateMetroJourneyStatusCard({ speedKmh, accuracy, nextDistanceM });
+  }
+
   function updateJourneyLiveStationUi() {
     const livePill = document.getElementById('map-live-pill');
     if (livePill) {
@@ -1989,6 +2252,7 @@
           updateLiveGpsMarker(userLat, userLng);
 
           if (isMetroJourneyActive()) {
+            updateMetroJourneyState(userLat, userLng, position);
             // Once a journey exists, From + Destination + currentRoutePath are frozen.
             // GPS updates only live station text/timeline highlight and the person marker.
             const journeyStart = currentRoutePath[0];
@@ -2211,57 +2475,181 @@
     return null;
   }
 
-  function getNextTrainArrival(routeInfo, offsetMinutes = 0) {
-    const directionText = typeof routeInfo === "string" ? routeInfo : routeInfo.direction;
-    const line = typeof routeInfo === "string" ? null : routeInfo.line;
+  // Physical ETA model used to phase each station against the terminal headway clock.
+  // BMRCL headway data tells us how often trains run, but not the arrival minute at every station.
+  // We therefore add cumulative run time + dwell time from the direction's origin terminal.
+  const METRO_TIMING_MODEL = Object.freeze({
+    trackDistanceFactor: 1.06,       // Track is slightly longer than straight-line station distance.
+    interStationSpeedKmh: 42,        // Effective movement speed between stops (accel/brake included approximately).
+    normalDwellSeconds: 25,          // Typical stop dwell.
+    interchangeDwellSeconds: 50,     // Busier interchange dwell allowance.
+    transferMinutes: 5               // Walking/platform-change allowance when the journey changes lines.
+  });
+
+  function getDirectionTerminals(line, directionText) {
+    if (line === 'Purple Line') {
+      return directionText.includes('Whitefield')
+        ? ['Challaghatta', 'Whitefield (Kadugodi)']
+        : ['Whitefield (Kadugodi)', 'Challaghatta'];
+    }
+    if (line === 'Green Line') {
+      return directionText.includes('Silk Institute')
+        ? ['Madavara', 'Silk Institute']
+        : ['Silk Institute', 'Madavara'];
+    }
+    if (line === 'Yellow Line') {
+      return directionText.includes('Bommasandra')
+        ? ['Rashtreeya Vidyalaya Road', 'Delta electronics Bommasandra']
+        : ['Delta electronics Bommasandra', 'Rashtreeya Vidyalaya Road'];
+    }
+    return null;
+  }
+
+  function getStationDwellMinutes(stationName) {
+    const isInterchange = stationName === 'Nadaprabhu Kempegowda (Majestic)' ||
+      stationName === 'Rashtreeya Vidyalaya Road';
+    const seconds = isInterchange
+      ? METRO_TIMING_MODEL.interchangeDwellSeconds
+      : METRO_TIMING_MODEL.normalDwellSeconds;
+    return seconds / 60;
+  }
+
+  function getEstimatedRunMinutes(fromStation, toStation) {
+    const from = STATIONS[fromStation];
+    const to = STATIONS[toStation];
+    if (!from || !to) return 2;
+
+    const straightKm = getDistanceInKm(from.lat, from.lng, to.lat, to.lng);
+    const trackKm = straightKm * METRO_TIMING_MODEL.trackDistanceFactor;
+    return (trackKm / METRO_TIMING_MODEL.interStationSpeedKmh) * 60;
+  }
+
+  function getStationPhaseMinutes(line, directionText, stationName) {
+    if (!stationName || !STATIONS[stationName]) return 0;
+    const terminals = getDirectionTerminals(line, directionText);
+    if (!terminals) return 0;
+
+    const path = findShortestPath(terminals[0], terminals[1]);
+    if (!path) return 0;
+    const stationIndex = path.indexOf(stationName);
+    if (stationIndex < 0) return 0;
+
+    let phaseMinutes = 0;
+    for (let i = 0; i < stationIndex; i++) {
+      phaseMinutes += getEstimatedRunMinutes(path[i], path[i + 1]);
+      // Add dwell only at intermediate stations. The target station time is ARRIVAL time.
+      if (i + 1 < stationIndex) phaseMinutes += getStationDwellMinutes(path[i + 1]);
+    }
+    return phaseMinutes;
+  }
+
+  function getPathStepMinutes(path, targetIndex) {
+    if (!Array.isArray(path) || targetIndex <= 0 || targetIndex >= path.length) return 0;
+
+    const previous = path[targetIndex - 1];
+    const current = path[targetIndex];
+    let minutes = getEstimatedRunMinutes(previous, current);
+
+    // Before leaving an intermediate station, either dwell on the same train or transfer lines.
+    if (targetIndex > 1) {
+      const beforePrevious = path[targetIndex - 2];
+      const incomingLine = getLineForSegment(beforePrevious, previous);
+      const outgoingLine = getLineForSegment(previous, current);
+      minutes += incomingLine === outgoingLine
+        ? getStationDwellMinutes(previous)
+        : METRO_TIMING_MODEL.transferMinutes;
+    }
+    return minutes;
+  }
+
+  function getEstimatedJourneyMinutes(path) {
+    if (!Array.isArray(path) || path.length < 2) return 0;
+    let total = 0;
+    for (let i = 1; i < path.length; i++) total += getPathStepMinutes(path, i);
+    return total;
+  }
+
+  function formatNextTrainMinutes(nextMins) {
+    if (nextMins < 1) return '<1 min';
+    const rounded = Math.ceil(nextMins);
+    return `${rounded} min${rounded > 1 ? 's' : ''}`;
+  }
+
+  function getNextTrainArrival(routeInfo, legacyOffsetMinutes = 0) {
+    const directionText = typeof routeInfo === 'string' ? routeInfo : routeInfo.direction;
+    const line = typeof routeInfo === 'string' ? null : routeInfo.line;
+    const stationName = typeof routeInfo === 'string' ? null : routeInfo.station;
     const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
-    const totalMins = hours * 60 + minutes + (seconds / 60);
+    const totalMins = now.getHours() * 60 + now.getMinutes() + (now.getSeconds() / 60);
     const timetable = BMRC_TIMETABLES[line];
     const directionKey = timetable ? getDirectionKey(line, directionText) : null;
     const bands = directionKey ? timetable[getScheduleKey(now)]?.[directionKey] : null;
 
     if (!bands) {
-      return { mins: "See BMRCL", detail: `Check BMRCL official timetable (${directionText})`, dateObj: null, isAvailable: false };
+      return { mins: 'See BMRCL', detail: `Check BMRCL official timetable (${directionText})`, dateObj: null, departureDateObj: null, isAvailable: false };
     }
 
-    let activeBand = bands.find(([start, end]) => totalMins >= start && totalMins <= end);
-    let nextMins;
+    // If we know the boarding station, phase the terminal timetable by physical travel+dwell time.
+    // Legacy offsets are retained only for callers without a station, for backward compatibility.
+    const phaseMinutes = stationName
+      ? getStationPhaseMinutes(line, directionText, stationName)
+      : -legacyOffsetMinutes;
+
+    const shiftedBands = bands.map(([start, end, headway]) => ({
+      terminalStart: start,
+      terminalEnd: end,
+      stationStart: start + phaseMinutes,
+      stationEnd: end + phaseMinutes,
+      headway
+    }));
+
+    const activeBand = shiftedBands.find(b => totalMins >= b.stationStart && totalMins <= b.stationEnd);
 
     if (activeBand) {
-      const [start, end, headway] = activeBand;
-      const elapsed = Math.max(0, totalMins - start + offsetMinutes);
-      nextMins = headway - (elapsed % headway);
-      if (nextMins <= 0) nextMins += headway;
-      const serviceEnd = minutesToTime(end);
-      const depTime = new Date(now.getTime() + nextMins * 60000);
-      const depTimeString = depTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const elapsed = Math.max(0, totalMins - activeBand.stationStart);
+      const remainder = ((elapsed % activeBand.headway) + activeBand.headway) % activeBand.headway;
+      let nextMins = remainder < 0.08 ? 0.08 : activeBand.headway - remainder;
+
+      const arrivalTime = new Date(now.getTime() + nextMins * 60000);
+      const departureTime = new Date(arrivalTime.getTime() + getStationDwellMinutes(stationName) * 60000);
+      const arrivalTimeString = arrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const serviceEnd = minutesToTime(activeBand.stationEnd);
+      const phaseLabel = stationName ? `station-phased • ~${Math.round(getStationDwellMinutes(stationName) * 60)}s dwell model` : 'frequency estimate';
+
       return {
-        mins: `${Math.ceil(nextMins)} min${Math.ceil(nextMins) > 1 ? 's' : ''}`,
-        detail: `Expected at ${depTimeString} (${directionText}) • BMRCL ${headway} min frequency until ${serviceEnd}`,
-        dateObj: depTime,
+        mins: formatNextTrainMinutes(nextMins),
+        detail: `Expected arrival ${arrivalTimeString} • ${phaseLabel} • BMRCL ${activeBand.headway} min frequency at this station until ${serviceEnd}`,
+        dateObj: arrivalTime,
+        departureDateObj: departureTime,
+        phaseMinutes,
         isAvailable: true
       };
     }
 
-    const upcomingBand = bands.find(([start]) => totalMins < start);
+    const upcomingBand = shiftedBands.find(b => totalMins < b.stationStart);
     if (!upcomingBand) {
-      const firstStart = minutesToTime(bands[0][0]);
-      const lastEnd = minutesToTime(bands[bands.length - 1][1]);
-      return { mins: "No Service", detail: `${line} ${directionText}: BMRCL timetable window is ${firstStart} - ${lastEnd}`, dateObj: null, isAvailable: false };
+      const firstStart = minutesToTime(shiftedBands[0].stationStart);
+      const lastEnd = minutesToTime(shiftedBands[shiftedBands.length - 1].stationEnd);
+      return {
+        mins: 'No Service',
+        detail: `${line} ${directionText}: estimated station service window is ${firstStart} - ${lastEnd}`,
+        dateObj: null,
+        departureDateObj: null,
+        isAvailable: false
+      };
     }
 
-    nextMins = upcomingBand[0] - totalMins;
-
-    const depTime = new Date(now.getTime() + nextMins * 60000);
-    const depTimeString = depTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nextMins = upcomingBand.stationStart - totalMins;
+    const arrivalTime = new Date(now.getTime() + nextMins * 60000);
+    const departureTime = new Date(arrivalTime.getTime() + getStationDwellMinutes(stationName) * 60000);
+    const arrivalTimeString = arrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     return {
-      mins: `${Math.ceil(nextMins)} min${Math.ceil(nextMins) > 1 ? 's' : ''}`,
-      detail: `First scheduled service at ${depTimeString} (${directionText}) • BMRCL timetable`,
-      dateObj: depTime,
+      mins: formatNextTrainMinutes(nextMins),
+      detail: `First estimated station arrival ${arrivalTimeString} (${directionText}) • includes travel+dwell phase`,
+      dateObj: arrivalTime,
+      departureDateObj: departureTime,
+      phaseMinutes,
       isAvailable: true
     };
   }
@@ -2272,6 +2660,7 @@
     container.innerHTML = '';
     currentPanel = 'unselected';
     currentRoutePath = [];
+    resetMetroJourneyTracker([]);
     updatePanelVisibility();
 
     if (!STATIONS[boardingStation]) return;
@@ -2297,7 +2686,7 @@
     }
 
     directions.forEach(d => {
-      const schedule = getNextTrainArrival({ direction: d.dir, line: d.line }, d.offset);
+      const schedule = getNextTrainArrival({ direction: d.dir, line: d.line, station: boardingStation });
       const box = document.createElement('div');
       box.className = 'next-train-box';
       box.innerHTML = `
@@ -2316,7 +2705,8 @@
     const container = document.getElementById('single-route-train-container');
     container.innerHTML = '';
 
-    const schedule = getNextTrainArrival(platInfo, 0);
+    const boardingStation = currentRoutePath.length > 1 ? currentRoutePath[0] : normalizeStationName(document.getElementById('from-input')?.value || '');
+    const schedule = getNextTrainArrival({ ...platInfo, station: boardingStation });
     const box = document.createElement('div');
     box.className = 'next-train-box active-route-dir';
     box.innerHTML = `
@@ -2345,11 +2735,10 @@
       return;
     }
 
-    let runningTime = new Date(trainArrival.dateObj.getTime());
+    let runningTime = new Date((trainArrival.departureDateObj || trainArrival.dateObj).getTime());
     tags.forEach((tag, index) => {
       if (index > 0) {
-        const prevStation = currentRoutePath[index - 1];
-        const extraMins = STATIONS[prevStation]?.line === 'Interchange' ? 5 : 2.5;
+        const extraMins = getPathStepMinutes(currentRoutePath, index);
         runningTime = new Date(runningTime.getTime() + extraMins * 60000);
       }
       tag.classList.remove('no-service-tag');
@@ -2383,7 +2772,7 @@
 
     container.innerHTML = '';
     directions.forEach(d => {
-      const schedule = getNextTrainArrival({ direction: d.dir, line: d.line }, d.offset);
+      const schedule = getNextTrainArrival({ direction: d.dir, line: d.line, station: boardingStation });
       const box = document.createElement('div');
       box.className = 'next-train-box';
       box.innerHTML = `
@@ -2422,6 +2811,7 @@
   function showBoardingDirections() {
     currentPanel = 'unselected';
     currentRoutePath = [];
+    resetMetroJourneyTracker([]);
     updatePanelVisibility();
 
     const currentFrom = normalizeStationName(document.getElementById('from-input').value);
@@ -2445,6 +2835,7 @@
 
     currentPanel = 'unselected';
     currentRoutePath = [];
+    resetMetroJourneyTracker([]);
     updatePanelVisibility();
     renderMetroMap();
   }
@@ -2471,6 +2862,7 @@
     const path = findShortestPath(start, end);
     if (!path) return;
     currentRoutePath = path;
+    resetMetroJourneyTracker(path);
     if (!isGpsUpdate) requestLeafletAutoFit(true);
 
     // Switch view from Unselected (Dual) to Selected (Single Path)
@@ -2479,8 +2871,7 @@
     renderMetroMap();
 
     const totalStops = path.length - 1;
-    const isInterchange = path.includes("Nadaprabhu Kempegowda (Majestic)") || path.includes("Rashtreeya Vidyalaya Road");
-    const estTimeMinutes = totalStops * 2.5 + (isInterchange ? 5 : 0);
+    const estTimeMinutes = getEstimatedJourneyMinutes(path);
     const calculatedFare = Math.min(90, Math.max(10, Math.ceil(totalStops * 5.2)));
 
     document.getElementById('metric-fare').innerText = `₹${calculatedFare}`;
@@ -2497,7 +2888,7 @@
       noServiceBanner.style.display = 'none';
     }
 
-    let runningTime = trainArrival.dateObj ? new Date(trainArrival.dateObj.getTime()) : new Date();
+    let runningTime = trainArrival.departureDateObj ? new Date(trainArrival.departureDateObj.getTime()) : (trainArrival.dateObj ? new Date(trainArrival.dateObj.getTime()) : new Date());
 
     const timeline = document.getElementById('timeline');
     timeline.innerHTML = '';
@@ -2512,9 +2903,7 @@
       const isLivePos = (currentNearestStation === station);
 
       if (i > 0) {
-        const prevStation = path[i - 1];
-        const isPrevInterchange = STATIONS[prevStation]?.line === "Interchange";
-        const extraMins = isPrevInterchange ? 5 : 2.5;
+        const extraMins = getPathStepMinutes(path, i);
         runningTime = new Date(runningTime.getTime() + extraMins * 60000);
       }
 
@@ -2599,6 +2988,9 @@
 
       timeline.appendChild(stepDiv);
     }
+
+    updateMetroJourneyTimelineProgress();
+    updateMetroJourneyStatusCard();
   }
 
   function setTransportMode(mode) {
