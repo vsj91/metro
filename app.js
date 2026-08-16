@@ -17,6 +17,7 @@
   let leafletUserTouched = false;
   let leafletProgrammaticFit = false;
   let leafletAutoFitRequested = true;
+  let leafletRouteRedrawRequested = true;
   let currentGpsPosition = null;
   let leafletLiveLocationMarker = null;
   let busRouteOptions = [];
@@ -603,6 +604,8 @@
     await Promise.all([loadMetroApiData(), loadBusApiData()]);
     rebuildDerivedTransitData();
     updateTransitApiStatus();
+    // Keep background refresh non-disruptive. renderMetroMap() skips intact routes,
+    // but self-heals if the expected route layers are actually missing.
     renderMetroMap();
   }
 
@@ -920,6 +923,21 @@
     if (resetTouch) leafletUserTouched = false;
   }
 
+  function requestLeafletRouteRedraw(resetTouch = false) {
+    leafletRouteRedrawRequested = true;
+    requestLeafletAutoFit(resetTouch);
+  }
+
+  function hasExpectedLeafletRouteLayers() {
+    if (!leafletLayerGroup) return false;
+    if (currentRoutePath.length < 2) return leafletLayerGroup.getLayers().length > 0;
+    const expectedSegments = currentRoutePath.length - 1;
+    const polylineCount = leafletLayerGroup.getLayers().filter(layer =>
+      typeof L !== 'undefined' && layer instanceof L.Polyline
+    ).length;
+    return polylineCount >= expectedSegments;
+  }
+
   function setActiveView(view) {
     activeView = view;
     if (view === 'map') requestLeafletAutoFit(false);
@@ -1227,7 +1245,6 @@
     if (htmlMap) htmlMap.style.display = 'none';
 
     updateMapStats();
-    leafletLayerGroup.clearLayers();
 
     const summary = document.getElementById('map-summary');
     const livePill = document.getElementById('map-live-pill');
@@ -1248,10 +1265,18 @@
       leafletAutoFitRequested ? 'fit' : 'steady'
     ].join('::');
 
-    if (renderKey === lastLeafletRenderKey && !leafletAutoFitRequested) {
+    // Skip only when the cached key matches AND the route layers really still exist.
+    // If Leaflet lost/cleared them for any reason, rebuild even when the key is unchanged.
+    const routeLayersIntact = hasExpectedLeafletRouteLayers();
+    const sameRender = renderKey === lastLeafletRenderKey;
+    if (sameRender && !leafletAutoFitRequested && !leafletRouteRedrawRequested && routeLayersIntact) {
+      ensureLeafletLiveLocationMarker();
       return true;
     }
-    lastLeafletRenderKey = renderKey;
+
+    // Build replacement layers off-screen first. Never destroy the visible route before
+    // the replacement route has been created successfully.
+    const nextLeafletLayerGroup = L.layerGroup();
 
     if (isRouteMap) {
       for (let i = 0; i < currentRoutePath.length - 1; i++) {
@@ -1278,7 +1303,7 @@
         opacity: highlighted ? 0.95 : 0.35,
         lineCap: 'round',
         lineJoin: 'round'
-      }).addTo(leafletLayerGroup);
+      }).addTo(nextLeafletLayerGroup);
       bounds.push(fromLatLng, toLatLng);
     });
 
@@ -1312,9 +1337,18 @@
           sticky: !selected,
           className: selected ? 'route-station-label' : 'station-label'
         })
-        .addTo(leafletLayerGroup);
+        .addTo(nextLeafletLayerGroup);
       bounds.push(latLng);
     });
+
+    // Atomic layer swap: only now replace the visible route/station layers.
+    // If building above throws, the existing visible group is never removed.
+    if (leafletLayerGroup && leafletMap.hasLayer(leafletLayerGroup)) {
+      leafletMap.removeLayer(leafletLayerGroup);
+    }
+    leafletLayerGroup = nextLeafletLayerGroup.addTo(leafletMap);
+    lastLeafletRenderKey = renderKey;
+    leafletRouteRedrawRequested = false;
 
     // Keep the actual GPS marker separate from leafletLayerGroup so route redraws do not destroy it.
     ensureLeafletLiveLocationMarker();
@@ -1959,7 +1993,7 @@
 
             // Full route/map redraw happens only when we reach/change to another nearest station.
             if (nearestChanged || stationChangedInInput) {
-              requestLeafletAutoFit(true);
+              requestLeafletRouteRedraw(true);
               updateRouteFromInputs(true);
             }
             statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
@@ -1967,7 +2001,7 @@
             statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
             // Manual boarding mode keeps the selected route, but refreshes station highlighting once per station change.
             if (nearestChanged) {
-              requestLeafletAutoFit(false);
+              requestLeafletRouteRedraw(false);
               renderMetroMap();
             }
           }
