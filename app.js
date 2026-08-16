@@ -1227,7 +1227,6 @@
     if (htmlMap) htmlMap.style.display = 'none';
 
     updateMapStats();
-    leafletLayerGroup.clearLayers();
 
     const summary = document.getElementById('map-summary');
     const livePill = document.getElementById('map-live-pill');
@@ -1239,19 +1238,27 @@
     const focusKey = isRouteMap
       ? `route:${currentRoutePath.join('|')}`
       : 'overview:network';
+
+    // During an active journey, the route-map cache key intentionally ignores live GPS station changes.
+    // GPS is represented by the separate person marker and must not rebuild the route layer.
+    const liveStateKey = isRouteMap ? 'journey-fixed' : (currentNearestStation || '');
     const renderKey = [
       activeView,
       focusKey,
       from,
       to,
-      currentNearestStation || '',
+      liveStateKey,
       leafletAutoFitRequested ? 'fit' : 'steady'
     ].join('::');
 
+    // IMPORTANT: decide whether a redraw is needed BEFORE clearing any Leaflet route layers.
     if (renderKey === lastLeafletRenderKey && !leafletAutoFitRequested) {
+      ensureLeafletLiveLocationMarker();
+      if (livePill) livePill.textContent = currentNearestStation ? `Live: ${currentNearestStation}` : 'Live: waiting';
       return true;
     }
     lastLeafletRenderKey = renderKey;
+    leafletLayerGroup.clearLayers();
 
     if (isRouteMap) {
       for (let i = 0; i < currentRoutePath.length - 1; i++) {
@@ -1283,7 +1290,7 @@
     });
 
     const stationList = isRouteMap
-      ? Array.from(new Set([...currentRoutePath, currentNearestStation].filter(Boolean)))
+      ? Array.from(new Set(currentRoutePath))
       : Object.keys(STATIONS);
 
     stationList.forEach((stationName) => {
@@ -1913,6 +1920,37 @@
     return nearestName ? { name: nearestName, distanceKm: minDistance } : null;
   }
 
+  function isMetroJourneyActive() {
+    return currentPanel === 'result' && currentRoutePath.length > 1;
+  }
+
+  function updateJourneyLiveStationUi() {
+    const livePill = document.getElementById('map-live-pill');
+    if (livePill) {
+      livePill.textContent = currentNearestStation ? `Live: ${currentNearestStation}` : 'Live: waiting';
+    }
+
+    // Update only the journey timeline DOM. Never call renderMetroMap() from here.
+    const timeline = document.getElementById('timeline');
+    if (!timeline) return;
+
+    timeline.querySelectorAll('.step[data-station]').forEach(step => {
+      const isLive = step.dataset.station === currentNearestStation;
+      step.classList.toggle('live-location-active', isLive);
+
+      const title = step.querySelector('.step-title');
+      if (!title) return;
+      const oldTag = title.querySelector('.live-tag');
+      if (oldTag) oldTag.remove();
+      if (isLive) {
+        const tag = document.createElement('span');
+        tag.className = 'live-tag';
+        tag.textContent = 'YOU ARE HERE';
+        title.append(' ', tag);
+      }
+    });
+  }
+
   function startGPSLiveTracking() {
     const statusDiv = document.getElementById('gps-status');
     const busStatusDiv = document.getElementById('bus-gps-status');
@@ -1939,10 +1977,6 @@
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
 
-        // GPS can change every few seconds. Only move the live marker for small coordinate changes.
-        // Do not rebuild route lines, clear Leaflet layers, or refit bounds here.
-        updateLiveGpsMarker(userLat, userLng);
-
         const nearestMetro = findNearestPoint(userLat, userLng, STATIONS);
         const nearestBus = findNearestPoint(userLat, userLng, BMTC_STOP_COORDS);
 
@@ -1951,26 +1985,33 @@
           currentNearestStation = nearestMetro.name;
           const distInMeters = (nearestMetro.distanceKm * 1000).toFixed(0);
 
-          if (fromStationSource === 'live') {
+          // Move only the independent person marker. This never touches route layers or map bounds.
+          updateLiveGpsMarker(userLat, userLng);
+
+          if (isMetroJourneyActive()) {
+            // Once a journey exists, From + Destination + currentRoutePath are frozen.
+            // GPS updates only live station text/timeline highlight and the person marker.
+            const journeyStart = currentRoutePath[0];
+            statusDiv.innerHTML = `Live GPS near <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Journey remains from <strong>${journeyStart}</strong>.`;
+            if (nearestChanged) updateJourneyLiveStationUi();
+          } else if (fromStationSource === 'live') {
+            // Before a journey is created, live GPS is allowed to establish the boarding station.
             const fromInput = document.getElementById('from-input');
             const stationChangedInInput = fromInput.value !== nearestMetro.name;
             fromInput.value = nearestMetro.name;
             document.getElementById('from-clear').style.display = 'none';
 
-            // Full route/map redraw happens only when we reach/change to another nearest station.
             if (nearestChanged || stationChangedInInput) {
-              requestLeafletAutoFit(true);
               updateRouteFromInputs(true);
             }
             statusDiv.innerHTML = `Live GPS set boarding station to <strong>${nearestMetro.name}</strong> (${distInMeters}m away)`;
           } else {
             statusDiv.innerHTML = `Live GPS nearby: <strong>${nearestMetro.name}</strong> (${distInMeters}m away). Using your typed boarding station.`;
-            // Manual boarding mode keeps the selected route, but refreshes station highlighting once per station change.
-            if (nearestChanged) {
-              requestLeafletAutoFit(false);
-              renderMetroMap();
-            }
+            if (nearestChanged) updateJourneyLiveStationUi();
           }
+        } else {
+          // Even if a nearest station cannot be resolved, keep the raw GPS person marker moving.
+          updateLiveGpsMarker(userLat, userLng);
         }
 
         if (nearestBus) {
@@ -2484,6 +2525,7 @@
 
       let stepDiv = document.createElement('div');
       stepDiv.className = 'step' + (isLivePos ? ' live-location-active' : '');
+      stepDiv.dataset.station = station;
 
       if (isStart) {
         const platInfo = getPlatformDetails(station, nextStation);
