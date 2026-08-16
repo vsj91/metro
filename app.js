@@ -1068,7 +1068,7 @@
       if (hiddenInRoute) return '';
       return `
         <div class="html-map-node ${isSelected ? 'selected' : ''} ${station.line === 'Interchange' ? 'interchange' : ''} ${isLive ? 'live' : ''}" style="--line-color:${color};--x:${p.x}px;--y:${p.y}px" title="${escapeHtml(stationName)}"></div>
-        ${isLive ? `<div class="html-map-train" style="--x:${p.x}px;--y:${p.y}px" aria-label="Live nearest train">🚆</div>` : ''}
+        ${isLive ? `<div class="html-map-train" style="--x:${p.x}px;--y:${p.y}px" aria-label="Live location">👤</div>` : ''}
       `;
     }).join('');
 
@@ -1202,7 +1202,7 @@
     if (!leafletLiveLocationMarker) {
       const trainIcon = L.divIcon({
         className: '',
-        html: '<div class="leaflet-train-marker">🚆</div>',
+        html: '<div class="leaflet-train-marker">👤</div>',
         iconSize: [34, 28],
         iconAnchor: [17, 14]
       });
